@@ -1,47 +1,44 @@
 function compressImage() {
-  const fileInput = document.getElementById('imageInput');
-  const targetSizeKB = parseInt(document.getElementById('targetSize').value);
-  if (!fileInput.files.length || !targetSizeKB) {
-    alert('Please select an image and enter a target size in KB.');
+  const input = document.getElementById('imageInput');
+  const targetSize = parseInt(document.getElementById('targetSize').value);
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+
+  if (!input.files.length || isNaN(targetSize)) {
+    alert("Please select an image and enter target size.");
     return;
   }
 
-  const file = fileInput.files[0];
+  const file = input.files[0];
   const reader = new FileReader();
-  reader.readAsDataURL(file);
   reader.onload = function (e) {
     const img = new Image();
-    img.src = e.target.result;
     img.onload = function () {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
       canvas.width = img.width;
       canvas.height = img.height;
       ctx.drawImage(img, 0, 0);
-
       let quality = 0.9;
-      function tryCompress() {
-        const dataUrl = canvas.toDataURL('image/jpeg', quality);
-        const sizeKB = Math.ceil(dataURLtoBlob(dataUrl).size / 1024);
-        if (sizeKB > targetSizeKB && quality > 0.05) {
+      let compressedDataUrl = "";
+
+      const tryCompress = () => {
+        compressedDataUrl = canvas.toDataURL("image/jpeg", quality);
+        const compressedSizeKB = Math.ceil(compressedDataUrl.length / 1024);
+        if (compressedSizeKB > targetSize && quality > 0.1) {
           quality -= 0.05;
           tryCompress();
         } else {
-          document.getElementById('previewImage').src = dataUrl;
-          const downloadLink = document.getElementById('downloadLink');
-          downloadLink.href = dataUrl;
-          document.getElementById('previewSection').style.display = 'block';
+          const a = document.createElement("a");
+          a.href = compressedDataUrl;
+          a.download = "compressed.jpg";
+          a.textContent = "Download Compressed Image";
+          const downloadSection = document.getElementById("downloadSection");
+          downloadSection.innerHTML = "";
+          downloadSection.appendChild(a);
         }
-      }
-
+      };
       tryCompress();
     };
+    img.src = e.target.result;
   };
-}
-
-function dataURLtoBlob(dataurl) {
-  const arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
-        bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
-  for (let i = 0; i < n; i++) u8arr[i] = bstr.charCodeAt(i);
-  return new Blob([u8arr], { type: mime });
+  reader.readAsDataURL(file);
 }
