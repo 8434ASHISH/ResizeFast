@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ResizeFast - Image Compressor</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <img src="logo.png" alt="ResizeFast Logo" class="logo" />
+    <h1>ResizeFast</h1>
+    <p>Compress images to your desired size — fast, easy & free!</p>
+  </header>
+
+  <main>
+    <div class="upload-section">
+      <input type="file" id="imageInput" accept="image/*" />
+      <input type="number" id="targetSize" placeholder="Enter target size in KB" />
+      <button onclick="compressImage()">Compress Now</button>
+    </div>
+    <canvas id="canvas" style="display:none;"></canvas>
+    <div id="downloadSection"></div>
+  </main>
+
+  <footer>
+    <p>Made with ❤️ in India | © 2025 ResizeFast</p>
+  </footer>
+
+  <script src="compress.js"></script>
+</body>
+</html>
