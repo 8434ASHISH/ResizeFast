@@ -1,0 +1,39 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  text-align: center;
+  background: #111;
+  color: #fff;
+}
+header {
+  background-color: #222;
+  padding: 20px 0;
+}
+.logo {
+  height: 40px;
+  vertical-align: middle;
+  margin-right: 10px;
+}
+.tagline {
+  font-size: 0.9em;
+  color: #aaa;
+}
+main {
+  padding: 20px;
+}
+.upload-section input, .upload-section button {
+  margin: 10px;
+  padding: 10px;
+  font-size: 1em;
+}
+.preview-section img {
+  max-width: 80%;
+  height: auto;
+  margin-top: 20px;
+}
+footer {
+  background: #222;
+  color: #888;
+  padding: 10px;
+}
