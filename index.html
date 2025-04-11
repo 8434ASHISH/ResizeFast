@@ -9,20 +9,25 @@
 </head>
 <body>
   <div class="container">
-    <h1>ResizeFast</h1>
-    <p>Resize your image to desired KBs</p>
-    <input type="file" id="imageInput" accept="image/*"/>
-    <input type="number" id="targetSize" placeholder="Enter target size in KB" />
-    <div id="previewContainer">
-      <p>Uploaded Image Preview:</p>
-      <img id="imagePreview" src="" alt="Image Preview" />
+    <h1>ResizeFast V3</h1>
+    <input type="file" id="upload" accept="image/*">
+    <div id="preview-container">
+      <img id="preview" src="#" alt="Image Preview" style="display:none;">
     </div>
-    <button onclick="compressImage()">Compress</button>
-    <div id="loader" class="loader" style="display:none;"></div>
-    <a id="downloadLink" style="display:none;" download="compressed.jpg">Download Compressed Image</a>
+    <div class="options">
+      <label for="resizeType">Resize by:</label>
+      <select id="resizeType">
+        <option value="kb">KB</option>
+        <option value="px">Pixels</option>
+      </select>
+      <input type="number" id="resizeInput" placeholder="Enter size in KB or Width in px">
+    </div>
+    <button id="compressBtn">Compress</button>
+    <div id="loader" style="display:none;">Compressing...</div>
+    <a id="downloadLink" style="display:none;" download="resized-image.jpg">Download Compressed Image</a>
   </div>
   <footer>
-    Made with ❤️ in India | © 2025 ResizeFast
+    <p>Made with love in India | © 2025 ResizeFast</p>
   </footer>
   <script src="script.js"></script>
 </body>
