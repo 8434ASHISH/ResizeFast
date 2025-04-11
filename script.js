@@ -1,1 +1,0 @@
-// Placeholder JS for ResizeFast V4
