@@ -3,468 +3,421 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Resizefast - Professional Converter</title>
+    <title>Resizefast - Professional Image Tool</title>
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <style>
         :root {
-            --primary: #4f46e5;
-            --secondary: #4338ca;
-            --accent: #06b6d4;
-            --bg: #f8fafc;
+            --primary: #3b82f6; /* Blue 500 */
+            --primary-dark: #2563eb;
+            --success: #10b981;
+            --bg: #f3f4f6;
             --surface: #ffffff;
-            --text: #0f172a;
-            --border: #e2e8f0;
+            --text-main: #1f2937;
+            --text-light: #6b7280;
+            --border: #e5e7eb;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text-main); line-height: 1.5; }
 
-        body {
-            background: var(--bg);
-            color: var(--text);
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-
-        /* --- Navigation --- */
-        nav {
+        /* --- HEADER --- */
+        header {
             background: var(--surface);
-            padding: 1rem 5%;
             border-bottom: 1px solid var(--border);
+            padding: 1rem 5%;
             display: flex;
             justify-content: space-between;
             align-items: center;
             position: sticky;
             top: 0;
-            z-index: 100;
+            z-index: 50;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
         }
-        .logo { font-size: 1.4rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 8px; }
-
-        /* --- Quick Tools --- */
-        .quick-bar {
-            background: white;
-            padding: 0.8rem 5%;
-            border-bottom: 1px solid var(--border);
+        .logo { font-size: 1.5rem; font-weight: 800; color: var(--primary-dark); display: flex; align-items: center; gap: 10px; }
+        
+        /* --- QUICK TOOLS BAR --- */
+        .tools-bar {
+            background: #fff;
+            padding: 1rem 5%;
             display: flex;
             gap: 12px;
             overflow-x: auto;
-            white-space: nowrap;
+            border-bottom: 1px solid var(--border);
+            scrollbar-width: thin;
         }
         .tool-chip {
-            padding: 6px 16px;
             background: #eff6ff;
-            color: var(--primary);
-            border-radius: 20px;
+            color: var(--primary-dark);
+            padding: 8px 16px;
+            border-radius: 50px;
             font-size: 0.85rem;
             font-weight: 600;
             cursor: pointer;
-            transition: 0.2s;
+            white-space: nowrap;
             border: 1px solid transparent;
+            transition: all 0.2s;
         }
-        .tool-chip:hover { background: var(--primary); color: white; }
-        .tool-chip.active { background: var(--secondary); color: white; border-color: var(--secondary); }
+        .tool-chip:hover { background: var(--primary); color: white; transform: translateY(-1px); }
+        .tool-chip.active { background: var(--primary-dark); color: white; box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3); }
 
-        /* --- Main Layout --- */
-        main {
-            flex: 1;
-            max-width: 1000px;
-            width: 100%;
-            margin: 2rem auto;
-            padding: 0 1rem;
-        }
+        /* --- MAIN CONTAINER --- */
+        .container { max-width: 1100px; margin: 0 auto; padding: 2rem 1rem; }
 
-        /* --- Upload Section --- */
-        .upload-card {
+        /* --- UPLOAD SECTION --- */
+        .upload-area {
             background: var(--surface);
             border: 2px dashed #cbd5e1;
             border-radius: 16px;
-            padding: 4rem 2rem;
+            padding: 4rem 1rem;
             text-align: center;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s;
+            margin-bottom: 2rem;
         }
-        .upload-card:hover { border-color: var(--primary); background: #f8fafc; transform: translateY(-2px); }
-        .upload-icon { font-size: 3rem; color: var(--primary); margin-bottom: 1rem; }
+        .upload-area:hover, .upload-area.dragover { border-color: var(--primary); background: #f0f9ff; }
+        .upload-area h2 { margin: 1rem 0 0.5rem; color: var(--text-main); }
+        .upload-area i { font-size: 3.5rem; color: var(--primary); }
 
-        /* --- Workspace (The Editor) --- */
-        .workspace {
-            display: none;
+        /* --- WORKSPACE (EDITOR) --- */
+        .workspace { display: none; gap: 2rem; align-items: flex-start; }
+        .workspace.active { display: grid; grid-template-columns: 350px 1fr; }
+        @media (max-width: 850px) { .workspace.active { grid-template-columns: 1fr; } }
+
+        /* LEFT: CONTROLS */
+        .controls { background: var(--surface); padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        
+        .control-group { margin-bottom: 1.5rem; }
+        .control-group label { display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem; color: var(--text-main); }
+        .form-select, .form-input {
+            width: 100%; padding: 0.6rem; border: 1px solid var(--border); border-radius: 6px; font-family: inherit;
+        }
+        .form-select:focus, .form-input:focus { outline: 2px solid var(--primary); border-color: transparent; }
+
+        /* Hidden Mode Sections */
+        .mode-panel { display: none; background: #f9fafb; padding: 10px; border-radius: 6px; border: 1px solid var(--border); margin-top: 5px; }
+        .mode-panel.show { display: block; }
+
+        .btn-process {
+            width: 100%; background: var(--primary-dark); color: white; padding: 1rem; border: none; border-radius: 8px;
+            font-weight: 700; cursor: pointer; font-size: 1rem; margin-top: 1rem; transition: 0.2s;
+        }
+        .btn-process:hover { background: #1e40af; }
+
+        /* RIGHT: PREVIEW */
+        .preview-container {
             background: var(--surface);
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-            margin-top: 2rem;
-            overflow: hidden;
-        }
-        .workspace.active { display: block; }
-
-        /* Two Column Layout for Desktop */
-        .editor-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            min-height: 500px;
-        }
-        @media (max-width: 768px) { .editor-grid { grid-template-columns: 1fr; } }
-
-        /* Left Column: Controls */
-        .controls-col {
-            padding: 2rem;
-            border-right: 1px solid var(--border);
-            background: #fff;
-        }
-        @media (max-width: 768px) { .controls-col { border-right: none; border-bottom: 1px solid var(--border); } }
-
-        .section-title { font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 8px; }
-        
-        .form-group { margin-bottom: 1.5rem; }
-        .form-group label { display: block; font-size: 0.9rem; font-weight: 600; margin-bottom: 0.5rem; color: #475569; }
-        .form-control {
-            width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px;
-            font-size: 0.95rem; transition: 0.2s;
-        }
-        .form-control:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
-
-        /* Mode Specific Inputs */
-        .mode-options { display: none; background: #f8fafc; padding: 1rem; border-radius: 8px; border: 1px solid var(--border); margin-top: 0.5rem; }
-        .mode-options.show { display: block; }
-
-        .checkbox-wrapper { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 0.9rem; }
-
-        /* Buttons */
-        .btn-primary {
-            width: 100%; background: var(--primary); color: white; border: none; padding: 1rem;
-            border-radius: 8px; font-weight: 600; font-size: 1rem; cursor: pointer; transition: 0.2s;
-            display: flex; justify-content: center; align-items: center; gap: 8px;
-        }
-        .btn-primary:hover { background: var(--secondary); }
-
-        /* Right Column: Preview */
-        .preview-col {
-            padding: 2rem;
-            background: #f1f5f9;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            gap: 2rem;
-        }
-
-        .preview-box {
-            background: white;
-            padding: 1rem;
+            padding: 1.5rem;
             border-radius: 12px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            text-align: center;
+            min-height: 400px;
         }
-        .preview-box h4 { margin-bottom: 0.5rem; color: #64748b; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; }
-        .preview-img { max-width: 100%; max-height: 250px; border-radius: 6px; border: 1px solid #eee; }
         
+        .preview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem; }
+        .preview-card h4 { margin-bottom: 0.5rem; color: var(--text-light); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px; }
+        .preview-img { max-width: 100%; max-height: 300px; border: 1px solid #eee; border-radius: 4px; background: #f9fafb; }
+        
+        .download-section {
+            display: none; /* Hidden until done */
+            border-top: 1px solid var(--border);
+            padding-top: 1.5rem;
+            margin-top: 1rem;
+        }
         .btn-download {
-            background: #10b981; color: white; padding: 1rem; border-radius: 8px; text-decoration: none; 
-            font-weight: bold; display: none; width: 100%; text-align: center; transition: 0.2s;
+            display: inline-block; background: var(--success); color: white; padding: 0.8rem 2rem; text-decoration: none;
+            border-radius: 8px; font-weight: 700; transition: 0.2s;
         }
-        .btn-download:hover { background: #059669; }
+        .btn-download:hover { background: #059669; transform: translateY(-2px); }
 
-        /* --- Footer --- */
-        footer { background: #1e293b; color: #94a3b8; padding: 3rem 1rem; margin-top: auto; }
-        .footer-content { max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; }
-        .footer-col h5 { color: white; margin-bottom: 1rem; font-size: 1.1rem; }
-        .footer-col a { color: inherit; text-decoration: none; display: block; margin-bottom: 0.5rem; cursor: pointer; }
-        .footer-col a:hover { color: white; text-decoration: underline; }
+        /* --- HOW TO USE SECTION --- */
+        .info-section { background: white; padding: 3rem 1rem; margin-top: 4rem; border-top: 1px solid var(--border); }
+        .steps-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; max-width: 1100px; margin: 2rem auto 0;
+        }
+        .step-card { text-align: center; padding: 1rem; }
+        .step-icon { width: 50px; height: 50px; background: #e0f2fe; color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.2rem; }
 
-        /* --- Modals (Popups) --- */
-        .modal-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center;
-        }
-        .modal-overlay.open { display: flex; }
-        .modal-box {
-            background: white; width: 90%; max-width: 600px; max-height: 80vh; overflow-y: auto;
-            border-radius: 12px; padding: 2rem; position: relative;
-        }
-        .modal-close { position: absolute; top: 1rem; right: 1rem; font-size: 1.5rem; cursor: pointer; color: #64748b; }
-        .modal-box h2 { color: var(--text); margin-bottom: 1rem; }
-        .modal-box p { line-height: 1.6; margin-bottom: 1rem; color: #475569; }
+        /* --- FOOTER --- */
+        footer { background: #111827; color: #9ca3af; padding: 3rem 1rem; }
+        .footer-grid { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 3rem; }
+        .footer-link { color: #d1d5db; text-decoration: none; display: block; margin-bottom: 0.5rem; cursor: pointer; }
+        .footer-link:hover { color: white; }
+
+        /* --- MODAL --- */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; }
+        .modal.open { display: flex; }
+        .modal-content { background: white; padding: 2rem; border-radius: 12px; width: 90%; max-width: 600px; max-height: 80vh; overflow-y: auto; position: relative; }
+        .close-modal { position: absolute; top: 1rem; right: 1rem; font-size: 1.5rem; cursor: pointer; }
 
     </style>
 </head>
 <body>
 
-    <nav>
-        <div class="logo"><i class="fas fa-magic"></i> Resizefast</div>
-    </nav>
+    <header>
+        <div class="logo"><i class="fas fa-layer-group"></i> Resizefast</div>
+        <div style="font-size:0.9rem; font-weight:600; color:var(--text-light);">v4.0 Pro</div>
+    </header>
 
-    <div class="quick-bar">
-        <div class="tool-chip" onclick="setupTool('png')">JPG to PNG</div>
-        <div class="tool-chip" onclick="setupTool('jpg')">PNG to JPG</div>
-        <div class="tool-chip" onclick="setupTool('pdf')">JPG to PDF (A4)</div>
-        <div class="tool-chip" onclick="setupTool('clean')">Clean & Enhance</div>
-        <div class="tool-chip" onclick="setupTool('compress')">Compress Image</div>
+    <div class="tools-bar">
+        <div style="display:flex; align-items:center; font-weight:bold; margin-right:10px; font-size:0.9rem;">Quick Tools:</div>
+        <div class="tool-chip" onclick="selectPreset('png', this)">JPG to PNG</div>
+        <div class="tool-chip" onclick="selectPreset('jpg', this)">PNG to JPG</div>
+        <div class="tool-chip" onclick="selectPreset('webp', this)">To WEBP</div>
+        <div class="tool-chip" onclick="selectPreset('pdf', this)">Image to PDF (A4)</div>
+        <div class="tool-chip" onclick="selectPreset('compress', this)">Compress Image</div>
     </div>
 
-    <main>
-        <div class="upload-card" id="dropArea" onclick="document.getElementById('fileIn').click()">
-            <i class="fas fa-cloud-upload-alt upload-icon"></i>
-            <h2>Upload your Image</h2>
-            <p style="color:#64748b; margin-top:0.5rem;">Supports JPG, PNG, WEBP</p>
-            <input type="file" id="fileIn" accept="image/*" hidden>
+    <div class="container">
+        <div class="upload-area" id="dropZone" onclick="document.getElementById('fileInput').click()">
+            <i class="fas fa-cloud-upload-alt"></i>
+            <h2 id="uploadTitle">Click to Upload Image</h2>
+            <p style="color:#64748b;">Supports JPG, PNG, WEBP (Max 10MB)</p>
+            <input type="file" id="fileInput" accept="image/*" hidden>
         </div>
 
         <div class="workspace" id="workspace">
-            <div class="editor-grid">
-                
-                <div class="controls-col">
-                    <div class="section-title"><i class="fas fa-sliders-h"></i> Configuration</div>
+            
+            <div class="controls">
+                <div class="control-group">
+                    <label><i class="fas fa-ruler-combined"></i> Resize Method</label>
+                    <select id="methodSelect" class="form-select" onchange="updateUI()">
+                        <option value="none">Original Size (Convert Only)</option>
+                        <option value="pixel">By Pixel (Width & Height)</option>
+                        <option value="percent">By Percentage</option>
+                        <option value="kb">Compress to Target KB</option>
+                    </select>
 
-                    <div class="form-group">
-                        <label>Resize Strategy</label>
-                        <select id="methodSel" class="form-control" onchange="updateUI()">
-                            <option value="none">Original Dimensions</option>
-                            <option value="pixel">By Pixel (Width/Height)</option>
-                            <option value="percent">By Percentage</option>
-                            <option value="dpi">By DPI (Print)</option>
-                            <option value="kb">Target File Size (KB)</option>
-                        </select>
-
-                        <div id="opt-pixel" class="mode-options">
-                            <div style="display:flex; gap:10px;">
-                                <input type="number" id="wIn" placeholder="Width" class="form-control" oninput="calcRatio('w')">
-                                <input type="number" id="hIn" placeholder="Height" class="form-control" oninput="calcRatio('h')">
-                            </div>
-                            <div class="checkbox-wrapper">
-                                <input type="checkbox" id="ratioCheck" checked> Maintain Aspect Ratio
-                            </div>
+                    <div id="panel-pixel" class="mode-panel">
+                        <div style="display:flex; gap:10px;">
+                            <input type="number" id="widthIn" placeholder="W" class="form-input" oninput="calcRatio('w')">
+                            <input type="number" id="heightIn" placeholder="H" class="form-input" oninput="calcRatio('h')">
                         </div>
-
-                        <div id="opt-percent" class="mode-options">
-                            <label>Scale: <span id="scaleTxt">50%</span></label>
-                            <input type="range" id="scaleRng" min="1" max="100" value="50" style="width:100%" oninput="document.getElementById('scaleTxt').innerText = this.value + '%'">
-                        </div>
-
-                        <div id="opt-dpi" class="mode-options">
-                            <input type="number" id="inchIn" placeholder="Width (Inches)" class="form-control" style="margin-bottom:8px;">
-                            <input type="number" id="dpiIn" value="300" class="form-control">
-                        </div>
-
-                        <div id="opt-kb" class="mode-options">
-                            <input type="number" id="kbIn" placeholder="Target KB (e.g. 200)" class="form-control">
+                        <div style="margin-top:8px; font-size:0.85rem;">
+                            <input type="checkbox" id="ratioCheck" checked> Maintain Aspect Ratio
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        <label>Output Format</label>
-                        <select id="fmtSel" class="form-control">
-                            <option value="image/jpeg">JPG / JPEG</option>
-                            <option value="image/png">PNG</option>
-                            <option value="image/webp">WEBP</option>
-                            <option value="application/pdf">PDF Document (A4)</option>
-                        </select>
+                    <div id="panel-percent" class="mode-panel">
+                        <label>Scale: <span id="scaleVal">50%</span></label>
+                        <input type="range" id="scaleRange" min="1" max="100" value="50" style="width:100%" oninput="document.getElementById('scaleVal').innerText = this.value + '%'">
                     </div>
 
-                    <div class="form-group" style="background:#f0f9ff; padding:1rem; border-radius:8px;">
-                        <label style="color:var(--primary); margin-bottom:0;"><i class="fas fa-wand-magic-sparkles"></i> AI Enhancement</label>
-                        <div class="checkbox-wrapper">
-                            <input type="checkbox" id="enhanceCheck"> Clean & Brighten Image
-                        </div>
-                        <small style="color:#64748b;">Automatically adjusts contrast & brightness.</small>
+                    <div id="panel-kb" class="mode-panel">
+                        <label>Target File Size (KB)</label>
+                        <input type="number" id="kbInput" placeholder="e.g. 100" class="form-input">
                     </div>
-
-                    <button class="btn-primary" onclick="process()">
-                        <i class="fas fa-bolt"></i> Convert & Preview
-                    </button>
-                    <div id="status" style="margin-top:10px; text-align:center; font-size:0.9rem; font-weight:600; color:var(--primary);"></div>
                 </div>
 
-                <div class="preview-col">
-                    <div class="preview-box">
+                <div class="control-group">
+                    <label><i class="fas fa-file-export"></i> Output Format</label>
+                    <select id="formatSelect" class="form-select">
+                        <option value="image/jpeg">JPG / JPEG</option>
+                        <option value="image/png">PNG</option>
+                        <option value="image/webp">WEBP</option>
+                        <option value="application/pdf">PDF (A4 Document)</option>
+                    </select>
+                </div>
+
+                <div class="control-group" style="background:#f0f9ff; padding:10px; border-radius:6px;">
+                    <label style="margin-bottom:0; cursor:pointer;">
+                        <input type="checkbox" id="enhanceCheck"> <i class="fas fa-magic"></i> Auto-Enhance Image
+                    </label>
+                </div>
+
+                <button class="btn-process" onclick="processImage()">
+                    Convert & Preview <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+
+            <div class="preview-container">
+                <div class="preview-grid">
+                    <div class="preview-card">
                         <h4>Original</h4>
-                        <img id="origImg" src="" class="preview-img">
-                        <div id="origMeta" style="font-size:0.8rem; margin-top:5px; color:#64748b;"></div>
+                        <img id="previewOriginal" class="preview-img">
+                        <div id="metaOriginal" style="font-size:0.8rem; margin-top:5px; color:#6b7280;"></div>
                     </div>
-
-                    <div class="preview-box" id="resBox" style="display:none; border:2px solid #10b981;">
-                        <h4 style="color:#10b981;">Converted Output</h4>
-                        <img id="resImg" src="" class="preview-img">
-                        <div id="resMeta" style="font-size:0.8rem; margin-top:5px; color:#64748b;"></div>
+                    <div class="preview-card">
+                        <h4>Result</h4>
+                        <img id="previewResult" class="preview-img" style="opacity:0.5">
+                        <div id="metaResult" style="font-size:0.8rem; margin-top:5px; color:#6b7280;">Waiting...</div>
                     </div>
-
-                    <a id="dlBtn" class="btn-download"><i class="fas fa-download"></i> Download Result</a>
                 </div>
 
+                <div id="downloadSection" class="download-section">
+                    <h3 style="color:var(--success); margin-bottom:0.5rem;">Success!</h3>
+                    <p style="margin-bottom:1rem; font-size:0.9rem;">Your image is ready.</p>
+                    <a id="downloadBtn" class="btn-download" download>
+                        <i class="fas fa-download"></i> Download Now
+                    </a>
+                </div>
             </div>
         </div>
-    </main>
+    </div>
+
+    <div class="info-section">
+        <div class="container">
+            <h2 style="text-align:center; margin-bottom:1rem;">How to Use Resizefast</h2>
+            <p style="text-align:center; color:#6b7280;">Professional conversions in 3 simple steps.</p>
+            
+            <div class="steps-grid">
+                <div class="step-card">
+                    <div class="step-icon"><i class="fas fa-upload"></i></div>
+                    <h3>1. Upload</h3>
+                    <p style="font-size:0.9rem; color:#6b7280; margin-top:0.5rem;">Select an image from your device or use a Quick Tool preset.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-icon"><i class="fas fa-sliders-h"></i></div>
+                    <h3>2. Customize</h3>
+                    <p style="font-size:0.9rem; color:#6b7280; margin-top:0.5rem;">Choose resize method (Pixel, KB) and output format (JPG, PDF).</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-icon"><i class="fas fa-download"></i></div>
+                    <h3>3. Download</h3>
+                    <p style="font-size:0.9rem; color:#6b7280; margin-top:0.5rem;">Instantly view the result and download your optimized file.</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <footer>
-        <div class="footer-content">
-            <div class="footer-col">
-                <h5>Resizefast</h5>
-                <p>Professional client-side image processing tool. Secure, fast, and free.</p>
+        <div class="footer-grid">
+            <div>
+                <h4 style="color:white; margin-bottom:1rem;">Resizefast</h4>
+                <p>Secure, client-side image processing. No files are uploaded to any server.</p>
             </div>
-            <div class="footer-col">
-                <h5>Legal</h5>
-                <a onclick="openModal('privacy')">Privacy Policy</a>
-                <a onclick="openModal('disclaimer')">Disclaimer</a>
-                <a onclick="openModal('terms')">Terms of Use</a>
+            <div>
+                <h4 style="color:white; margin-bottom:1rem;">Legal</h4>
+                <a class="footer-link" onclick="openModal('Privacy Policy', 'We do not store your data. All processing happens in your browser.')">Privacy Policy</a>
+                <a class="footer-link" onclick="openModal('Disclaimer', 'The tool is provided as-is. We are not responsible for lost data.')">Disclaimer</a>
             </div>
-            <div class="footer-col">
-                <h5>Support</h5>
-                <a onclick="openModal('contact')">Contact Us</a>
-                <a href="#">Report Bug</a>
+            <div>
+                <h4 style="color:white; margin-bottom:1rem;">Support</h4>
+                <a class="footer-link" onclick="openModal('Contact Us', 'Email: support@resizefast.com')">Contact Us</a>
             </div>
         </div>
-        <div style="text-align:center; margin-top:2rem; font-size:0.8rem; opacity:0.6;">&copy; 2024 Resizefast. All rights reserved.</div>
+        <div style="text-align:center; margin-top:2rem; font-size:0.8rem; border-top:1px solid #1f2937; padding-top:1rem;">
+            &copy; 2024 Resizefast. All rights reserved.
+        </div>
     </footer>
 
-    <div id="modalOverlay" class="modal-overlay">
-        <div class="modal-box">
-            <i class="fas fa-times modal-close" onclick="closeModal()"></i>
+    <div id="infoModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
             <h2 id="modalTitle">Title</h2>
-            <div id="modalBody">Content...</div>
+            <p id="modalBody" style="margin-top:1rem; color:#4b5563;">Text</p>
         </div>
     </div>
 
     <script>
-        // --- State ---
-        const fileIn = document.getElementById('fileIn');
+        // --- Variables ---
+        const fileInput = document.getElementById('fileInput');
         const workspace = document.getElementById('workspace');
-        let rawImg = new Image();
-        let fileData = null;
-        let toolPreset = null;
+        const previewOrig = document.getElementById('previewOriginal');
+        const metaOrig = document.getElementById('metaOriginal');
+        
+        let originalImage = new Image();
+        let currentFile = null;
+        let pendingPreset = null; // Stores preset if selected before upload
 
-        // --- 1. Quick Tools Setup ---
-        function setupTool(type) {
-            toolPreset = type;
-            fileIn.click();
+        // --- 1. Quick Tool Logic ---
+        function selectPreset(type, element) {
+            // Visual feedback
+            document.querySelectorAll('.tool-chip').forEach(c => c.classList.remove('active'));
+            element.classList.add('active');
+            
+            // Set state
+            pendingPreset = type;
+            
+            // Scroll to upload and highlight
+            document.querySelector('.upload-area').scrollIntoView({behavior: 'smooth'});
+            document.getElementById('uploadTitle').innerText = "Step 2: Upload Image Now";
+            document.querySelector('.upload-area').style.borderColor = 'var(--primary)';
         }
 
-        // --- 2. File Upload ---
-        fileIn.addEventListener('change', e => {
-            if(e.target.files[0]) loadFile(e.target.files[0]);
+        // --- 2. Upload Handling ---
+        fileInput.addEventListener('change', function(e) {
+            if(e.target.files && e.target.files[0]) {
+                handleFile(e.target.files[0]);
+            }
         });
 
-        function loadFile(file) {
-            fileData = file;
+        // Drag & Drop
+        const dropZone = document.getElementById('dropZone');
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+        dropZone.addEventListener('dragleave', (e) => { e.preventDefault(); dropZone.classList.remove('dragover'); });
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            if(e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+        });
+
+        function handleFile(file) {
+            // Validation
+            if (!file.type.startsWith('image/')) {
+                alert("Please upload a valid image file (JPG, PNG, WEBP).");
+                return;
+            }
+
+            currentFile = file;
             const reader = new FileReader();
-            reader.onload = e => {
-                rawImg.onload = () => {
-                    initEditor();
+            
+            reader.onload = function(event) {
+                originalImage.onload = function() {
+                    initWorkspace();
                 };
-                rawImg.src = e.target.result;
+                originalImage.src = event.target.result;
+                previewOrig.src = event.target.result;
             };
             reader.readAsDataURL(file);
         }
 
-        function initEditor() {
+        function initWorkspace() {
             workspace.classList.add('active');
-            document.getElementById('origImg').src = rawImg.src;
-            document.getElementById('origMeta').innerText = `${rawImg.width}x${rawImg.height} • ${(fileData.size/1024).toFixed(1)} KB`;
+            metaOrig.innerText = `${originalImage.width} x ${originalImage.height} • ${(currentFile.size/1024).toFixed(1)} KB`;
             
-            // Prefill dimensions
-            document.getElementById('wIn').value = rawImg.width;
-            document.getElementById('hIn').value = rawImg.height;
+            // Pre-fill dimensions
+            document.getElementById('widthIn').value = originalImage.width;
+            document.getElementById('heightIn').value = originalImage.height;
 
-            // Apply Preset Logic
-            const fmt = document.getElementById('fmtSel');
-            const meth = document.getElementById('methodSel');
-            const enh = document.getElementById('enhanceCheck');
+            // Apply Preset if exists
+            if(pendingPreset) applyPreset();
 
-            // Reset defaults
-            meth.value = 'none';
-            enh.checked = false;
-
-            if(toolPreset === 'png') fmt.value = 'image/png';
-            if(toolPreset === 'jpg') fmt.value = 'image/jpeg';
-            if(toolPreset === 'pdf') fmt.value = 'application/pdf';
-            if(toolPreset === 'clean') enh.checked = true;
-            if(toolPreset === 'compress') meth.value = 'kb';
-
-            updateUI();
-            
             // Scroll to workspace
-            workspace.scrollIntoView({behavior:'smooth'});
-            toolPreset = null; // reset
+            workspace.scrollIntoView({behavior: 'smooth'});
+        }
+
+        function applyPreset() {
+            const fmt = document.getElementById('formatSelect');
+            const method = document.getElementById('methodSelect');
+            
+            // Reset
+            method.value = 'none';
+
+            if(pendingPreset === 'png') fmt.value = 'image/png';
+            if(pendingPreset === 'jpg') fmt.value = 'image/jpeg';
+            if(pendingPreset === 'webp') fmt.value = 'image/webp';
+            if(pendingPreset === 'pdf') fmt.value = 'application/pdf';
+            
+            if(pendingPreset === 'compress') {
+                method.value = 'kb';
+            }
+            
+            updateUI();
+            pendingPreset = null; // Clear
         }
 
         // --- 3. UI Logic ---
         function updateUI() {
-            const m = document.getElementById('methodSel').value;
-            document.querySelectorAll('.mode-options').forEach(el => el.classList.remove('show'));
+            const method = document.getElementById('methodSelect').value;
+            document.querySelectorAll('.mode-panel').forEach(p => p.classList.remove('show'));
             
-            if(m === 'pixel') document.getElementById('opt-pixel').classList.add('show');
-            if(m === 'percent') document.getElementById('opt-percent').classList.add('show');
-            if(m === 'dpi') document.getElementById('opt-dpi').classList.add('show');
-            if(m === 'kb') document.getElementById('opt-kb').classList.add('show');
+            if(method === 'pixel') document.getElementById('panel-pixel').classList.add('show');
+            if(method === 'percent') document.getElementById('panel-percent').classList.add('show');
+            if(method === 'kb') document.getElementById('panel-kb').classList.add('show');
         }
 
-        function calcRatio(src) {
-            if(!document.getElementById('ratioCheck').checked) return;
-            const r = rawImg.width / rawImg.height;
-            if(src === 'w') document.getElementById('hIn').value = Math.round(document.getElementById('wIn').value / r);
-            else document.getElementById('wIn').value = Math.round(document.getElementById('hIn').value * r);
-        }
-
-        // --- 4. Main Processing ---
-        async function process() {
-            const status = document.getElementById('status');
-            status.innerText = "Processing image...";
-            
-            // Wait a tick for UI to update
-            await new Promise(r => setTimeout(r, 50));
-
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            
-            // A. Calculate Dimensions
-            let w = rawImg.width, h = rawImg.height;
-            const method = document.getElementById('methodSel').value;
-
-            if(method === 'pixel') {
-                w = parseInt(document.getElementById('wIn').value) || w;
-                h = parseInt(document.getElementById('hIn').value) || h;
-            } else if (method === 'percent') {
-                const p = parseInt(document.getElementById('scaleRng').value)/100;
-                w *= p; h *= p;
-            } else if (method === 'dpi') {
-                const inch = parseFloat(document.getElementById('inchIn').value);
-                const dpi = parseInt(document.getElementById('dpiIn').value);
-                if(inch && dpi) {
-                    w = inch * dpi;
-                    h = w / (rawImg.width/rawImg.height);
-                }
-            }
-
-            canvas.width = w;
-            canvas.height = h;
-
-            // B. Draw & Enhance
-            ctx.imageSmoothingQuality = 'high';
-            
-            if(document.getElementById('enhanceCheck').checked) {
-                ctx.filter = 'contrast(1.1) brightness(1.05) saturate(1.05)';
-            }
-            
-            ctx.drawImage(rawImg, 0, 0, w, h);
-            ctx.filter = 'none'; // reset
-
-            // C. Output Generation
-            const format = document.getElementById('fmtSel').value;
-
-            if(format === 'application/pdf') {
-                generatePDF(canvas);
-            } else if (method === 'kb') {
-                processKB(canvas, format);
-            } else {
-                canvas.toBlob(blob => showResult(blob, format), format, 0.95);
-            }
-        }
-
-        // --- 5. PDF Generation (A4) ---
-        function generatePDF(canvas) {
-            const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF({
-                orientation: 'p',
-                unit: 'mm',
-                format: 'a4'
-            });
-
-            const imgData = canvas.toDataURL('i
+    
