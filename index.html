@@ -3,542 +3,434 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Resizefast - Professional Image Tool</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <title>Resizefast - Image Converter</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
         :root {
             --primary: #2563eb;
-            --secondary: #1e40af;
-            --bg-light: #f8fafc;
-            --text-dark: #1e293b;
-            --border: #e2e8f0;
+            --bg: #f1f5f9;
+            --surface: #ffffff;
+            --text: #1e293b;
+            --border: #cbd5e1;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
 
         body {
-            background-color: var(--bg-light);
-            color: var(--text-dark);
+            background: var(--bg);
+            color: var(--text);
             display: flex;
             flex-direction: column;
             min-height: 100vh;
         }
 
-        /* Navigation */
-        nav {
-            background: white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            padding: 1rem 5%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+        /* Nav & Header */
+        nav { background: var(--surface); padding: 1rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+        .logo { font-size: 1.25rem; font-weight: bold; color: var(--primary); }
 
-        .logo {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: var(--primary);
+        /* Quick Tools Bar */
+        .quick-bar {
+            background: #e0f2fe;
+            padding: 10px;
             display: flex;
-            align-items: center;
+            justify-content: center;
             gap: 10px;
+            flex-wrap: wrap;
+            border-bottom: 1px solid #bfdbfe;
         }
-
-        /* Main Container */
-        main {
-            flex: 1;
-            max-width: 1200px;
-            margin: 2rem auto;
-            padding: 0 1rem;
-            width: 100%;
-        }
-
-        /* Upload Section */
-        .upload-zone {
+        .chip {
             background: white;
+            color: var(--primary);
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid transparent;
+            user-select: none;
+        }
+        .chip:hover { border-color: var(--primary); background: #eff6ff; }
+        .chip.active { background: var(--primary); color: white; }
+
+        /* Main Layout */
+        main { flex: 1; max-width: 800px; margin: 2rem auto; padding: 0 1rem; width: 100%; }
+
+        /* Upload */
+        .upload-box {
+            background: var(--surface);
             border: 2px dashed var(--primary);
             border-radius: 10px;
             padding: 3rem;
             text-align: center;
             cursor: pointer;
-            transition: all 0.3s ease;
-            margin-bottom: 2rem;
+            transition: 0.2s;
         }
-
-        .upload-zone:hover {
-            background-color: #eff6ff;
-        }
-
-        .upload-zone i {
-            font-size: 3rem;
-            color: var(--primary);
-            margin-bottom: 1rem;
-        }
+        .upload-box:hover { background: #eff6ff; }
 
         /* Workspace (Hidden initially) */
-        .workspace {
-            display: none; /* Hidden until image uploaded */
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            padding: 2rem;
-        }
+        .workspace { display: none; margin-top: 2rem; background: var(--surface); border-radius: 10px; padding: 1.5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .workspace.active { display: block; }
 
-        .workspace.active {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2rem;
-        }
+        /* Preview Area */
+        .preview-area { text-align: center; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
+        .preview-area img { max-width: 100%; max-height: 250px; border: 1px solid #ddd; border-radius: 4px; }
+        .meta-info { color: #64748b; font-size: 0.9rem; margin-top: 0.5rem; }
 
-        @media (max-width: 768px) {
-            .workspace.active {
-                grid-template-columns: 1fr;
-            }
-        }
+        /* Controls */
+        .control-group { margin-bottom: 1.5rem; }
+        .control-group label { display: block; font-weight: bold; margin-bottom: 0.5rem; }
+        select, input { width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 5px; margin-bottom: 5px; }
 
-        /* Controls Side */
-        .controls {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-            padding-right: 1rem;
-            border-right: 1px solid var(--border);
-        }
+        /* Specific Mode Inputs (Hidden) */
+        .mode-input { display: none; background: #f8fafc; padding: 10px; border-radius: 5px; border: 1px solid var(--border); }
+        .mode-input.show { display: block; }
 
-        @media (max-width: 768px) {
-            .controls { border-right: none; border-bottom: 1px solid var(--border); padding-bottom: 1rem; }
-        }
-
-        .control-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        label {
-            font-weight: 600;
-            font-size: 0.9rem;
-        }
-
-        select, input {
-            padding: 0.75rem;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            font-size: 1rem;
-        }
-
-        .btn-primary {
+        /* Buttons */
+        .btn-action {
+            width: 100%;
+            padding: 1rem;
             background: var(--primary);
             color: white;
             border: none;
-            padding: 1rem;
-            border-radius: 6px;
+            border-radius: 5px;
+            font-size: 1rem;
             font-weight: bold;
             cursor: pointer;
-            transition: background 0.2s;
         }
-
-        .btn-primary:hover {
-            background: var(--secondary);
-        }
-
-        .btn-pdf {
-            background: #ef4444; /* Red for PDF */
+        .btn-action:hover { background: #1d4ed8; }
+        
+        .btn-download {
+            display: none;
+            width: 100%;
+            padding: 1rem;
+            background: #10b981;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
             margin-top: 10px;
         }
-        
-        .btn-pdf:hover { background: #dc2626; }
-
-        /* Preview Side */
-        .previews {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-
-        .preview-box {
-            background: var(--bg-light);
-            padding: 1rem;
-            border-radius: 8px;
-            text-align: center;
-        }
-
-        .preview-box img {
-            max-width: 100%;
-            max-height: 300px;
-            border: 1px solid #ddd;
-            margin-top: 0.5rem;
-        }
-
-        .file-info {
-            font-size: 0.85rem;
-            color: #64748b;
-            margin-bottom: 0.5rem;
-        }
-
-        /* Hidden Inputs for specific modes */
-        .mode-options {
-            display: none;
-        }
-        .mode-options.active {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        /* Info Section */
-        .info-section {
-            max-width: 800px;
-            margin: 4rem auto;
-            background: white;
-            padding: 2rem;
-            border-radius: 10px;
-        }
-
-        .info-section h2 { margin-bottom: 1rem; color: var(--text-dark); }
-        .info-section ol { padding-left: 1.5rem; line-height: 1.8; }
 
         /* Footer */
-        footer {
-            background: #1e293b;
-            color: white;
-            padding: 3rem 1rem;
-            margin-top: auto;
-        }
-
-        .footer-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 2rem;
-        }
-
-        .footer-col h4 { margin-bottom: 1rem; color: #94a3b8; }
-        .footer-col ul { list-style: none; }
-        .footer-col ul li { margin-bottom: 0.5rem; }
-        .footer-col a { color: white; text-decoration: none; opacity: 0.8; }
-        .footer-col a:hover { opacity: 1; text-decoration: underline; }
-
+        footer { text-align: center; padding: 2rem; color: #64748b; font-size: 0.8rem; border-top: 1px solid var(--border); margin-top: 2rem; }
     </style>
 </head>
 <body>
 
     <nav>
-        <div class="logo">
-            <i class="fas fa-layer-group"></i> Resizefast
-        </div>
-        <div>
-            <a href="#" style="text-decoration:none; color:var(--text-dark);">Home</a>
-        </div>
+        <div class="logo"><i class="fas fa-image"></i> Resizefast</div>
     </nav>
 
+    <div class="quick-bar">
+        <div class="chip" onclick="useTool('png')">JPG to PNG</div>
+        <div class="chip" onclick="useTool('jpg')">PNG to JPG</div>
+        <div class="chip" onclick="useTool('webp')">Image to WEBP</div>
+        <div class="chip" onclick="useTool('compress')">Compress Image</div>
+    </div>
+
     <main>
-        <div style="text-align:center; margin-bottom: 2rem;">
-            <h1>Free Online Image Resizer & Converter</h1>
-            <p style="color:#64748b;">Resize by Pixel, Percentage, or KB. Convert to PDF instantly.</p>
+        <div style="text-align:center; margin-bottom:1.5rem;">
+            <h1>Free Image Converter</h1>
+            <p style="color:#64748b;">Convert & Resize securely in your browser.</p>
         </div>
 
-        <div class="upload-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
-            <i class="fas fa-cloud-upload-alt"></i>
+        <div class="upload-box" onclick="document.getElementById('fileInput').click()">
+            <i class="fas fa-cloud-upload-alt" style="font-size:2rem; color:var(--primary); margin-bottom:10px;"></i>
             <h3>Click to Upload Image</h3>
-            <p>or drag and drop JPG, PNG, WEBP</p>
-            <input type="file" id="fileInput" accept="image/*" hidden>
+            <input type="file" id="fileInput" accept="image/png, image/jpeg, image/webp" hidden>
         </div>
 
         <div class="workspace" id="workspace">
             
-            <div class="controls">
-                <h3><i class="fas fa-sliders-h"></i> Settings</h3>
+            <div class="preview-area">
+                <img id="imgPreview" src="" alt="Preview">
+                <div class="meta-info" id="fileMeta">Loading...</div>
+            </div>
 
-                <div class="control-group">
-                    <label>Resize Method:</label>
-                    <select id="resizeMode" onchange="toggleInputs()">
-                        <option value="dimensions">By Dimensions (Width/Height)</option>
-                        <option value="percentage">By Percentage</option>
-                        <option value="kb">By Target Size (KB)</option>
-                    </select>
-                </div>
+            <div class="control-group">
+                <label>1. Resize Method</label>
+                <select id="resizeMethod" onchange="updateInputs()">
+                    <option value="none">No Resize (Convert Only)</option>
+                    <option value="pixel">By Pixel (Width/Height)</option>
+                    <option value="percent">By Percentage</option>
+                    <option value="dpi">By DPI (Print Size)</option>
+                    <option value="kb">Compress to File Size (KB)</option>
+                </select>
 
-                <div id="dimensionsInput" class="mode-options active">
+                <div id="input-pixel" class="mode-input">
                     <div style="display:flex; gap:10px;">
-                        <div style="flex:1">
-                            <label>Width (px)</label>
-                            <input type="number" id="widthInput" placeholder="Width">
-                        </div>
-                        <div style="flex:1">
-                            <label>Height (px)</label>
-                            <input type="number" id="heightInput" placeholder="Height">
-                        </div>
+                        <div><label>Width</label><input type="number" id="widthVal" onkeyup="calcRatio('w')"></div>
+                        <div><label>Height</label><input type="number" id="heightVal" onkeyup="calcRatio('h')"></div>
                     </div>
-                    <label style="font-size:0.8rem;">
-                        <input type="checkbox" id="maintainRatio" checked> Maintain Aspect Ratio
+                    <label style="font-weight:normal; font-size:0.9rem;">
+                        <input type="checkbox" id="aspectRatio" checked> Maintain Aspect Ratio
                     </label>
                 </div>
 
-                <div id="percentageInput" class="mode-options">
-                    <label>Percentage (%)</label>
-                    <input type="range" id="percentRange" min="1" max="100" value="50" oninput="document.getElementById('percentVal').innerText = this.value + '%'">
-                    <div style="text-align:right; font-weight:bold;" id="percentVal">50%</div>
+                <div id="input-percent" class="mode-input">
+                    <label>Percentage: <span id="percText">50%</span></label>
+                    <input type="range" id="percVal" min="1" max="100" value="50" oninput="document.getElementById('percText').innerText = this.value + '%'">
                 </div>
 
-                <div id="kbInput" class="mode-options">
-                    <label>Max File Size (KB)</label>
-                    <input type="number" id="targetKB" placeholder="e.g. 50">
-                    <p style="font-size:0.75rem; color:#666;">Note: We will reduce quality to try and meet this size.</p>
+                <div id="input-dpi" class="mode-input">
+                    <div style="display:flex; gap:10px;">
+                        <div><label>Width (Inches)</label><input type="number" id="inchVal" placeholder="4"></div>
+                        <div><label>DPI</label><input type="number" id="dpiVal" value="300"></div>
+                    </div>
                 </div>
 
-                <div class="control-group" style="margin-top:1rem;">
-                    <button class="btn-primary" onclick="processImage()">
-                        <i class="fas fa-compress"></i> Resize & Preview
-                    </button>
-                    
-                    <button class="btn-primary btn-pdf" onclick="convertToPDF()">
-                        <i class="fas fa-file-pdf"></i> Convert to PDF
-                    </button>
+                <div id="input-kb" class="mode-input">
+                    <label>Target Size (KB)</label>
+                    <input type="number" id="kbVal" placeholder="e.g. 200">
                 </div>
             </div>
 
-            <div class="previews">
-                <div class="preview-box">
-                    <h4>Original</h4>
-                    <div class="file-info" id="originalInfo">Waiting...</div>
-                    <img id="originalPreview" src="" alt="" style="display:none;">
-                </div>
-
-                <div class="preview-box">
-                    <h4>Result</h4>
-                    <div class="file-info" id="resultInfo">No changes yet</div>
-                    <img id="resultPreview" src="" alt="" style="display:none;">
-                    <br>
-                    <a id="downloadLink" href="#" style="display:none; margin-top:10px; color:var(--primary); font-weight:bold;">Download Image</a>
-                </div>
+            <div class="control-group">
+                <label>2. Output Format</label>
+                <select id="outputFormat">
+                    <option value="image/jpeg">JPG / JPEG</option>
+                    <option value="image/png">PNG</option>
+                    <option value="image/webp">WEBP</option>
+                </select>
             </div>
+
+            <button class="btn-action" id="convertBtn" onclick="processImage()">Convert & Resize</button>
+            <div id="status" style="text-align:center; margin-top:10px; color:var(--primary);"></div>
+            <a id="downloadBtn" class="btn-download">Download Image</a>
+
         </div>
 
-        <div class="info-section">
-            <h2>How to use Resizefast</h2>
-            <ol>
-                <li><strong>Upload your photo:</strong> Click the upload box or drag and drop your image file.</li>
-                <li><strong>Choose a method:</strong> Select how you want to resize (by Pixel, Percentage, or target KB size).</li>
-                <li><strong>Adjust settings:</strong> Enter your desired width, height, or maximum file size.</li>
-                <li><strong>Preview & Download:</strong> Click "Resize & Preview" to see the result. If satisfied, click the download link.</li>
-                <li><strong>Convert to PDF:</strong> Need a document? Click "Convert to PDF" to save the image as a PDF file immediately.</li>
-            </ol>
+        <div style="margin-top:3rem; background:white; padding:1.5rem; border-radius:10px;">
+            <h2>How to use</h2>
+            <ul style="margin-left:20px; line-height:1.6; color:#475569;">
+                <li><strong>Upload:</strong> Click the box to select your image.</li>
+                <li><strong>Resize:</strong> Select "By Pixel" to set width/height, or "No Resize" just to convert format.</li>
+                <li><strong>Convert:</strong> Choose JPG, PNG, or WEBP at the bottom.</li>
+                <li><strong>Download:</strong> Click the Convert button and save your file.</li>
+            </ul>
         </div>
     </main>
 
     <footer>
-        <div class="footer-content">
-            <div class="footer-col">
-                <h4>Resizefast</h4>
-                <p style="font-size:0.9rem; color:#cbd5e1;">The fastest way to resize and convert your images entirely in your browser. Secure and private.</p>
-            </div>
-            <div class="footer-col">
-                <h4>Legal</h4>
-                <ul>
-                    <li><a href="#">Privacy Policy</a></li>
-                    <li><a href="#">Terms of Use</a></li>
-                    <li><a href="#">Disclaimer</a></li>
-                </ul>
-            </div>
-            <div class="footer-col">
-                <h4>Contact Us</h4>
-                <ul>
-                    <li><a href="#">Support</a></li>
-                    <li><a href="#">Feedback</a></li>
-                    <li>Email: help@resizefast.com</li>
-                </ul>
-            </div>
-        </div>
-        <div style="text-align:center; margin-top:2rem; padding-top:1rem; border-top:1px solid #334155; font-size:0.8rem; color:#94a3b8;">
-            &copy; 2023 Resizefast. All rights reserved.
-        </div>
+        <p>&copy; 2023 Resizefast. Privacy Policy | Contact Us</p>
     </footer>
 
     <script>
+        // --- Variables ---
         const fileInput = document.getElementById('fileInput');
         const workspace = document.getElementById('workspace');
-        const originalPreview = document.getElementById('originalPreview');
-        const resultPreview = document.getElementById('resultPreview');
-        const originalInfo = document.getElementById('originalInfo');
-        const resultInfo = document.getElementById('resultInfo');
-        const downloadLink = document.getElementById('downloadLink');
+        const imgPreview = document.getElementById('imgPreview');
+        const widthInput = document.getElementById('widthVal');
+        const heightInput = document.getElementById('heightVal');
+        
+        let originalImg = new Image();
+        let currentFile = null;
+        let preselectedTool = null; // Stores user choice from quick bar
 
-        let originalFile = null;
-        let originalImageObject = new Image();
+        // --- 1. Quick Tool Logic ---
+        function useTool(toolName) {
+            preselectedTool = toolName;
+            // Directly trigger file upload
+            fileInput.click();
+        }
 
-        // 1. Handle File Upload
+        // --- 2. File Upload Handling ---
         fileInput.addEventListener('change', function(e) {
-            handleFile(e.target.files[0]);
-        });
-
-        // Drag and Drop
-        const dropZone = document.getElementById('dropZone');
-        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.background = '#e0f2fe'; });
-        dropZone.addEventListener('dragleave', (e) => { e.preventDefault(); dropZone.style.background = 'white'; });
-        dropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropZone.style.background = 'white';
-            handleFile(e.dataTransfer.files[0]);
-        });
-
-        function handleFile(file) {
-            if (!file) return;
-            if (!file.type.startsWith('image/')) {
-                alert('Please upload a valid image file.');
-                return;
-            }
-
-            originalFile = file;
-            originalInfo.innerText = `Size: ${(file.size/1024).toFixed(2)} KB`;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                originalPreview.src = e.target.result;
-                originalPreview.style.display = 'inline-block';
+            if(e.target.files && e.target.files[0]) {
+                currentFile = e.target.files[0];
+                const reader = new FileReader();
                 
-                originalImageObject.onload = function() {
-                    // Pre-fill dimensions
-                    document.getElementById('widthInput').value = originalImageObject.width;
-                    document.getElementById('heightInput').value = originalImageObject.height;
-                    workspace.classList.add('active');
+                reader.onload = function(event) {
+                    originalImg.onload = function() {
+                        // Image loaded successfully
+                        initWorkspace();
+                    }
+                    originalImg.src = event.target.result;
+                    imgPreview.src = event.target.result;
                 }
-                originalImageObject.src = e.target.result;
+                reader.readAsDataURL(currentFile);
             }
-            reader.readAsDataURL(file);
-        }
+        });
 
-        // 2. Toggle Input Fields based on Mode
-        function toggleInputs() {
-            const mode = document.getElementById('resizeMode').value;
-            document.querySelectorAll('.mode-options').forEach(el => el.classList.remove('active'));
+        function initWorkspace() {
+            workspace.classList.add('active');
             
-            if (mode === 'dimensions') document.getElementById('dimensionsInput').classList.add('active');
-            else if (mode === 'percentage') document.getElementById('percentageInput').classList.add('active');
-            else if (mode === 'kb') document.getElementById('kbInput').classList.add('active');
+            // Show stats
+            document.getElementById('fileMeta').innerText = 
+                `Original: ${originalImg.width}x${originalImg.height} px | ${(currentFile.size/1024).toFixed(1)} KB`;
+
+            // Pre-fill Pixel inputs
+            widthInput.value = originalImg.width;
+            heightInput.value = originalImg.height;
+
+            // Apply Quick Tool Settings if any
+            applyToolSettings();
         }
 
-        // 3. Aspect Ratio Logic
-        document.getElementById('widthInput').addEventListener('input', function() {
-            if(document.getElementById('maintainRatio').checked && originalImageObject.width > 0) {
-                const ratio = originalImageObject.height / originalImageObject.width;
-                document.getElementById('heightInput').value = Math.round(this.value * ratio);
-            }
-        });
+        function applyToolSettings() {
+            const formatSelect = document.getElementById('outputFormat');
+            const methodSelect = document.getElementById('resizeMethod');
 
-        document.getElementById('heightInput').addEventListener('input', function() {
-            if(document.getElementById('maintainRatio').checked && originalImageObject.height > 0) {
-                const ratio = originalImageObject.width / originalImageObject.height;
-                document.getElementById('widthInput').value = Math.round(this.value * ratio);
+            if(preselectedTool === 'png') {
+                formatSelect.value = 'image/png';
+                methodSelect.value = 'none';
+            } else if(preselectedTool === 'jpg') {
+                formatSelect.value = 'image/jpeg';
+                methodSelect.value = 'none';
+            } else if(preselectedTool === 'webp') {
+                formatSelect.value = 'image/webp';
+                methodSelect.value = 'none';
+            } else if(preselectedTool === 'compress') {
+                methodSelect.value = 'kb';
             }
-        });
+            
+            // Refresh UI inputs based on the method selected
+            updateInputs();
+            // Reset tool
+            preselectedTool = null;
+        }
 
-        // 4. Main Processing Function
+        // --- 3. UI Toggles ---
+        function updateInputs() {
+            const mode = document.getElementById('resizeMethod').value;
+            
+            // Hide all first
+            document.querySelectorAll('.mode-input').forEach(div => div.classList.remove('show'));
+
+            // Show selected
+            if(mode === 'pixel') document.getElementById('input-pixel').classList.add('show');
+            if(mode === 'percent') document.getElementById('input-percent').classList.add('show');
+            if(mode === 'dpi') document.getElementById('input-dpi').classList.add('show');
+            if(mode === 'kb') document.getElementById('input-kb').classList.add('show');
+        }
+
+        // --- 4. Aspect Ratio Math ---
+        function calcRatio(source) {
+            if(!document.getElementById('aspectRatio').checked) return;
+
+            const ratio = originalImg.width / originalImg.height;
+
+            if(source === 'w') {
+                heightInput.value = Math.round(widthInput.value / ratio);
+            } else {
+                widthInput.value = Math.round(heightInput.value * ratio);
+            }
+        }
+
+        // --- 5. Main Processing ---
         function processImage() {
-            if(!originalImageObject.src) return;
+            const status = document.getElementById('status');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const convertBtn = document.getElementById('convertBtn');
+            
+            status.innerText = "Processing...";
+            downloadBtn.style.display = 'none';
 
-            const mode = document.getElementById('resizeMode').value;
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
+            // Give the UI a moment to update text
+            setTimeout(() => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const method = document.getElementById('resizeMethod').value;
+                const format = document.getElementById('outputFormat').value;
 
-            let newWidth, newHeight;
+                let w = originalImg.width;
+                let h = originalImg.height;
 
-            // Calculate Dimensions
-            if (mode === 'dimensions') {
-                newWidth = parseInt(document.getElementById('widthInput').value);
-                newHeight = parseInt(document.getElementById('heightInput').value);
-            } else if (mode === 'percentage') {
-                const p = parseInt(document.getElementById('percentRange').value) / 100;
-                newWidth = originalImageObject.width * p;
-                newHeight = originalImageObject.height * p;
-            } else {
-                // For KB mode, start with original dimensions
-                newWidth = originalImageObject.width;
-                newHeight = originalImageObject.height;
-            }
+                // 1. Calculate Dimensions
+                if(method === 'pixel') {
+                    w = parseInt(widthInput.value) || w;
+                    h = parseInt(heightInput.value) || h;
+                } 
+                else if (method === 'percent') {
+                    const p = parseInt(document.getElementById('percVal').value) / 100;
+                    w = w * p;
+                    h = h * p;
+                }
+                else if (method === 'dpi') {
+                    const inches = parseFloat(document.getElementById('inchVal').value);
+                    const dpi = parseInt(document.getElementById('dpiVal').value);
+                    if(inches && dpi) {
+                        w = inches * dpi;
+                        h = w / (originalImg.width / originalImg.height);
+                    }
+                }
 
-            canvas.width = newWidth;
-            canvas.height = newHeight;
-            ctx.drawImage(originalImageObject, 0, 0, newWidth, newHeight);
+                canvas.width = w;
+                canvas.height = h;
 
-            // Output Handling
-            if (mode === 'kb') {
-                compressToKB(canvas);
-            } else {
-                canvas.toBlob((blob) => {
-                    displayResult(blob);
-                }, originalFile.type);
-            }
+                // 2. Draw
+                // Use better quality smoothing
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = "high";
+                ctx.drawImage(originalImg, 0, 0, w, h);
+
+                // 3. Output
+                if(method === 'kb') {
+                    // Special compression loop
+                    handleKBCompression(canvas, format);
+                } else {
+                    // Standard export
+                    canvas.toBlob(function(blob) {
+                        showDownload(blob, format);
+                    }, format, 0.92); // 0.92 is standard high quality
+                }
+            }, 100);
         }
 
-        // 5. Compress to Target KB (Iterative approach)
-        function compressToKB(canvas) {
-            const targetKB = parseFloat(document.getElementById('targetKB').value);
-            if(!targetKB) { alert("Please enter a target KB size"); return; }
+        function handleKBCompression(canvas, format) {
+            const targetKB = parseInt(document.getElementById('kbVal').value);
+            if(!targetKB) { alert("Please enter target KB"); return; }
 
-            let quality = 0.9;
             let min = 0;
             let max = 1;
-            let attempt = 0;
-            
-            function tryCompress() {
-                canvas.toBlob((blob) => {
+            let quality = 0.8;
+            let attempts = 0;
+
+            function attempt() {
+                canvas.toBlob(blob => {
                     const kb = blob.size / 1024;
-                    
-                    // Simple binary search-like approximation
-                    if ((kb > targetKB) && (attempt < 10)) {
-                        max = quality;
-                        quality = (min + max) / 2;
-                        attempt++;
-                        tryCompress();
-                    } else {
-                        // Accept result (even if slightly off, we did our best in 10 tries)
-                        displayResult(blob);
+                    attempts++;
+
+                    // If we are close enough or ran out of attempts
+                    if( (kb <= targetKB && kb > targetKB * 0.9) || attempts > 8 || quality < 0.05) {
+                        showDownload(blob, format);
+                        return;
                     }
-                }, 'image/jpeg', quality);
+
+                    // Binary search for quality
+                    if(kb > targetKB) {
+                        max = quality;
+                    } else {
+                        min = quality;
+                    }
+                    quality = (min + max) / 2;
+                    attempt();
+
+                }, format, quality);
             }
-            tryCompress();
+            attempt();
         }
 
-        function displayResult(blob) {
+        function showDownload(blob, format) {
             const url = URL.createObjectURL(blob);
-            resultPreview.src = url;
-            resultPreview.style.display = 'inline-block';
-            resultInfo.innerText = `New Size: ${(blob.size/1024).toFixed(2)} KB`;
+            const downloadBtn = document.getElementById('downloadBtn');
+            const status = document.getElementById('status');
             
-            downloadLink.href = url;
-            downloadLink.download = `resized-image.${originalFile.type.split('/')[1]}`;
-            downloadLink.style.display = 'inline-block';
-            downloadLink.innerText = "Download Image";
+            // Determine extension
+            let ext = "jpg";
+            if(format === "image/png") ext = "png";
+            if(format === "image/webp") ext = "webp";
+
+            downloadBtn.href = url;
+            downloadBtn.download = `converted_image.${ext}`;
+            downloadBtn.style.display = 'block';
+            downloadBtn.innerText = `Download Image (${(blob.size/1024).toFixed(1)} KB)`;
+            
+            status.innerText = "Done!";
         }
 
-        // 6. PDF Generation
-        async function convertToPDF() {
-            if(!originalImageObject.src) { alert("Please upload an image first."); return; }
-            
-            const { jsPDF } = window.jspdf;
-            
-            // Create PDF based on image orientation
-            const orientation = originalImageObject.width > originalImageObject.height ? 'l' : 'p';
-            const pdf = new jsPDF({
-                orientation: orientation,
-                unit: 'px',
-                format: [originalImageObject.width, originalImageObject.height]
-            });
-
-            // Add image to PDF
-            // Note: jsPDF handles base64 or Image elements
-            pdf.addImage(originalImageObject, 'JPEG', 0, 0, originalImageObject.width, originalImageObject.height);
-            
-            pdf.save("converted-image.pdf");
-        }
     </script>
 </body>
 </html>
