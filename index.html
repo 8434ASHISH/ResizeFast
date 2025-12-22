@@ -3,19 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Resizefast - Image Converter</title>
+    <title>Resizefast - Professional Converter</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <style>
         :root {
-            --primary: #2563eb;
-            --bg: #f1f5f9;
+            --primary: #4f46e5;
+            --secondary: #4338ca;
+            --accent: #06b6d4;
+            --bg: #f8fafc;
             --surface: #ffffff;
-            --text: #1e293b;
-            --border: #cbd5e1;
+            --text: #0f172a;
+            --border: #e2e8f0;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
 
         body {
             background: var(--bg);
@@ -25,412 +28,443 @@
             min-height: 100vh;
         }
 
-        /* Nav & Header */
-        nav { background: var(--surface); padding: 1rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
-        .logo { font-size: 1.25rem; font-weight: bold; color: var(--primary); }
-
-        /* Quick Tools Bar */
-        .quick-bar {
-            background: #e0f2fe;
-            padding: 10px;
+        /* --- Navigation --- */
+        nav {
+            background: var(--surface);
+            padding: 1rem 5%;
+            border-bottom: 1px solid var(--border);
             display: flex;
-            justify-content: center;
-            gap: 10px;
-            flex-wrap: wrap;
-            border-bottom: 1px solid #bfdbfe;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
-        .chip {
+        .logo { font-size: 1.4rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 8px; }
+
+        /* --- Quick Tools --- */
+        .quick-bar {
             background: white;
+            padding: 0.8rem 5%;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+        .tool-chip {
+            padding: 6px 16px;
+            background: #eff6ff;
             color: var(--primary);
-            padding: 5px 15px;
-            border-radius: 15px;
+            border-radius: 20px;
             font-size: 0.85rem;
             font-weight: 600;
             cursor: pointer;
+            transition: 0.2s;
             border: 1px solid transparent;
-            user-select: none;
         }
-        .chip:hover { border-color: var(--primary); background: #eff6ff; }
-        .chip.active { background: var(--primary); color: white; }
+        .tool-chip:hover { background: var(--primary); color: white; }
+        .tool-chip.active { background: var(--secondary); color: white; border-color: var(--secondary); }
 
-        /* Main Layout */
-        main { flex: 1; max-width: 800px; margin: 2rem auto; padding: 0 1rem; width: 100%; }
+        /* --- Main Layout --- */
+        main {
+            flex: 1;
+            max-width: 1000px;
+            width: 100%;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
 
-        /* Upload */
-        .upload-box {
+        /* --- Upload Section --- */
+        .upload-card {
             background: var(--surface);
-            border: 2px dashed var(--primary);
-            border-radius: 10px;
-            padding: 3rem;
+            border: 2px dashed #cbd5e1;
+            border-radius: 16px;
+            padding: 4rem 2rem;
             text-align: center;
             cursor: pointer;
-            transition: 0.2s;
+            transition: all 0.3s ease;
         }
-        .upload-box:hover { background: #eff6ff; }
+        .upload-card:hover { border-color: var(--primary); background: #f8fafc; transform: translateY(-2px); }
+        .upload-icon { font-size: 3rem; color: var(--primary); margin-bottom: 1rem; }
 
-        /* Workspace (Hidden initially) */
-        .workspace { display: none; margin-top: 2rem; background: var(--surface); border-radius: 10px; padding: 1.5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        /* --- Workspace (The Editor) --- */
+        .workspace {
+            display: none;
+            background: var(--surface);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            margin-top: 2rem;
+            overflow: hidden;
+        }
         .workspace.active { display: block; }
 
-        /* Preview Area */
-        .preview-area { text-align: center; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
-        .preview-area img { max-width: 100%; max-height: 250px; border: 1px solid #ddd; border-radius: 4px; }
-        .meta-info { color: #64748b; font-size: 0.9rem; margin-top: 0.5rem; }
+        /* Two Column Layout for Desktop */
+        .editor-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            min-height: 500px;
+        }
+        @media (max-width: 768px) { .editor-grid { grid-template-columns: 1fr; } }
 
-        /* Controls */
-        .control-group { margin-bottom: 1.5rem; }
-        .control-group label { display: block; font-weight: bold; margin-bottom: 0.5rem; }
-        select, input { width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 5px; margin-bottom: 5px; }
+        /* Left Column: Controls */
+        .controls-col {
+            padding: 2rem;
+            border-right: 1px solid var(--border);
+            background: #fff;
+        }
+        @media (max-width: 768px) { .controls-col { border-right: none; border-bottom: 1px solid var(--border); } }
 
-        /* Specific Mode Inputs (Hidden) */
-        .mode-input { display: none; background: #f8fafc; padding: 10px; border-radius: 5px; border: 1px solid var(--border); }
-        .mode-input.show { display: block; }
+        .section-title { font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 8px; }
+        
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group label { display: block; font-size: 0.9rem; font-weight: 600; margin-bottom: 0.5rem; color: #475569; }
+        .form-control {
+            width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px;
+            font-size: 0.95rem; transition: 0.2s;
+        }
+        .form-control:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+
+        /* Mode Specific Inputs */
+        .mode-options { display: none; background: #f8fafc; padding: 1rem; border-radius: 8px; border: 1px solid var(--border); margin-top: 0.5rem; }
+        .mode-options.show { display: block; }
+
+        .checkbox-wrapper { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 0.9rem; }
 
         /* Buttons */
-        .btn-action {
-            width: 100%;
-            padding: 1rem;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
+        .btn-primary {
+            width: 100%; background: var(--primary); color: white; border: none; padding: 1rem;
+            border-radius: 8px; font-weight: 600; font-size: 1rem; cursor: pointer; transition: 0.2s;
+            display: flex; justify-content: center; align-items: center; gap: 8px;
         }
-        .btn-action:hover { background: #1d4ed8; }
-        
-        .btn-download {
-            display: none;
-            width: 100%;
-            padding: 1rem;
-            background: #10b981;
-            color: white;
+        .btn-primary:hover { background: var(--secondary); }
+
+        /* Right Column: Preview */
+        .preview-col {
+            padding: 2rem;
+            background: #f1f5f9;
             text-align: center;
-            text-decoration: none;
-            border-radius: 5px;
-            font-weight: bold;
-            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
         }
 
-        /* Footer */
-        footer { text-align: center; padding: 2rem; color: #64748b; font-size: 0.8rem; border-top: 1px solid var(--border); margin-top: 2rem; }
+        .preview-box {
+            background: white;
+            padding: 1rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .preview-box h4 { margin-bottom: 0.5rem; color: #64748b; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; }
+        .preview-img { max-width: 100%; max-height: 250px; border-radius: 6px; border: 1px solid #eee; }
+        
+        .btn-download {
+            background: #10b981; color: white; padding: 1rem; border-radius: 8px; text-decoration: none; 
+            font-weight: bold; display: none; width: 100%; text-align: center; transition: 0.2s;
+        }
+        .btn-download:hover { background: #059669; }
+
+        /* --- Footer --- */
+        footer { background: #1e293b; color: #94a3b8; padding: 3rem 1rem; margin-top: auto; }
+        .footer-content { max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; }
+        .footer-col h5 { color: white; margin-bottom: 1rem; font-size: 1.1rem; }
+        .footer-col a { color: inherit; text-decoration: none; display: block; margin-bottom: 0.5rem; cursor: pointer; }
+        .footer-col a:hover { color: white; text-decoration: underline; }
+
+        /* --- Modals (Popups) --- */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center;
+        }
+        .modal-overlay.open { display: flex; }
+        .modal-box {
+            background: white; width: 90%; max-width: 600px; max-height: 80vh; overflow-y: auto;
+            border-radius: 12px; padding: 2rem; position: relative;
+        }
+        .modal-close { position: absolute; top: 1rem; right: 1rem; font-size: 1.5rem; cursor: pointer; color: #64748b; }
+        .modal-box h2 { color: var(--text); margin-bottom: 1rem; }
+        .modal-box p { line-height: 1.6; margin-bottom: 1rem; color: #475569; }
+
     </style>
 </head>
 <body>
 
     <nav>
-        <div class="logo"><i class="fas fa-image"></i> Resizefast</div>
+        <div class="logo"><i class="fas fa-magic"></i> Resizefast</div>
     </nav>
 
     <div class="quick-bar">
-        <div class="chip" onclick="useTool('png')">JPG to PNG</div>
-        <div class="chip" onclick="useTool('jpg')">PNG to JPG</div>
-        <div class="chip" onclick="useTool('webp')">Image to WEBP</div>
-        <div class="chip" onclick="useTool('compress')">Compress Image</div>
+        <div class="tool-chip" onclick="setupTool('png')">JPG to PNG</div>
+        <div class="tool-chip" onclick="setupTool('jpg')">PNG to JPG</div>
+        <div class="tool-chip" onclick="setupTool('pdf')">JPG to PDF (A4)</div>
+        <div class="tool-chip" onclick="setupTool('clean')">Clean & Enhance</div>
+        <div class="tool-chip" onclick="setupTool('compress')">Compress Image</div>
     </div>
 
     <main>
-        <div style="text-align:center; margin-bottom:1.5rem;">
-            <h1>Free Image Converter</h1>
-            <p style="color:#64748b;">Convert & Resize securely in your browser.</p>
-        </div>
-
-        <div class="upload-box" onclick="document.getElementById('fileInput').click()">
-            <i class="fas fa-cloud-upload-alt" style="font-size:2rem; color:var(--primary); margin-bottom:10px;"></i>
-            <h3>Click to Upload Image</h3>
-            <input type="file" id="fileInput" accept="image/png, image/jpeg, image/webp" hidden>
+        <div class="upload-card" id="dropArea" onclick="document.getElementById('fileIn').click()">
+            <i class="fas fa-cloud-upload-alt upload-icon"></i>
+            <h2>Upload your Image</h2>
+            <p style="color:#64748b; margin-top:0.5rem;">Supports JPG, PNG, WEBP</p>
+            <input type="file" id="fileIn" accept="image/*" hidden>
         </div>
 
         <div class="workspace" id="workspace">
-            
-            <div class="preview-area">
-                <img id="imgPreview" src="" alt="Preview">
-                <div class="meta-info" id="fileMeta">Loading...</div>
-            </div>
+            <div class="editor-grid">
+                
+                <div class="controls-col">
+                    <div class="section-title"><i class="fas fa-sliders-h"></i> Configuration</div>
 
-            <div class="control-group">
-                <label>1. Resize Method</label>
-                <select id="resizeMethod" onchange="updateInputs()">
-                    <option value="none">No Resize (Convert Only)</option>
-                    <option value="pixel">By Pixel (Width/Height)</option>
-                    <option value="percent">By Percentage</option>
-                    <option value="dpi">By DPI (Print Size)</option>
-                    <option value="kb">Compress to File Size (KB)</option>
-                </select>
+                    <div class="form-group">
+                        <label>Resize Strategy</label>
+                        <select id="methodSel" class="form-control" onchange="updateUI()">
+                            <option value="none">Original Dimensions</option>
+                            <option value="pixel">By Pixel (Width/Height)</option>
+                            <option value="percent">By Percentage</option>
+                            <option value="dpi">By DPI (Print)</option>
+                            <option value="kb">Target File Size (KB)</option>
+                        </select>
 
-                <div id="input-pixel" class="mode-input">
-                    <div style="display:flex; gap:10px;">
-                        <div><label>Width</label><input type="number" id="widthVal" onkeyup="calcRatio('w')"></div>
-                        <div><label>Height</label><input type="number" id="heightVal" onkeyup="calcRatio('h')"></div>
+                        <div id="opt-pixel" class="mode-options">
+                            <div style="display:flex; gap:10px;">
+                                <input type="number" id="wIn" placeholder="Width" class="form-control" oninput="calcRatio('w')">
+                                <input type="number" id="hIn" placeholder="Height" class="form-control" oninput="calcRatio('h')">
+                            </div>
+                            <div class="checkbox-wrapper">
+                                <input type="checkbox" id="ratioCheck" checked> Maintain Aspect Ratio
+                            </div>
+                        </div>
+
+                        <div id="opt-percent" class="mode-options">
+                            <label>Scale: <span id="scaleTxt">50%</span></label>
+                            <input type="range" id="scaleRng" min="1" max="100" value="50" style="width:100%" oninput="document.getElementById('scaleTxt').innerText = this.value + '%'">
+                        </div>
+
+                        <div id="opt-dpi" class="mode-options">
+                            <input type="number" id="inchIn" placeholder="Width (Inches)" class="form-control" style="margin-bottom:8px;">
+                            <input type="number" id="dpiIn" value="300" class="form-control">
+                        </div>
+
+                        <div id="opt-kb" class="mode-options">
+                            <input type="number" id="kbIn" placeholder="Target KB (e.g. 200)" class="form-control">
+                        </div>
                     </div>
-                    <label style="font-weight:normal; font-size:0.9rem;">
-                        <input type="checkbox" id="aspectRatio" checked> Maintain Aspect Ratio
-                    </label>
-                </div>
 
-                <div id="input-percent" class="mode-input">
-                    <label>Percentage: <span id="percText">50%</span></label>
-                    <input type="range" id="percVal" min="1" max="100" value="50" oninput="document.getElementById('percText').innerText = this.value + '%'">
-                </div>
-
-                <div id="input-dpi" class="mode-input">
-                    <div style="display:flex; gap:10px;">
-                        <div><label>Width (Inches)</label><input type="number" id="inchVal" placeholder="4"></div>
-                        <div><label>DPI</label><input type="number" id="dpiVal" value="300"></div>
+                    <div class="form-group">
+                        <label>Output Format</label>
+                        <select id="fmtSel" class="form-control">
+                            <option value="image/jpeg">JPG / JPEG</option>
+                            <option value="image/png">PNG</option>
+                            <option value="image/webp">WEBP</option>
+                            <option value="application/pdf">PDF Document (A4)</option>
+                        </select>
                     </div>
+
+                    <div class="form-group" style="background:#f0f9ff; padding:1rem; border-radius:8px;">
+                        <label style="color:var(--primary); margin-bottom:0;"><i class="fas fa-wand-magic-sparkles"></i> AI Enhancement</label>
+                        <div class="checkbox-wrapper">
+                            <input type="checkbox" id="enhanceCheck"> Clean & Brighten Image
+                        </div>
+                        <small style="color:#64748b;">Automatically adjusts contrast & brightness.</small>
+                    </div>
+
+                    <button class="btn-primary" onclick="process()">
+                        <i class="fas fa-bolt"></i> Convert & Preview
+                    </button>
+                    <div id="status" style="margin-top:10px; text-align:center; font-size:0.9rem; font-weight:600; color:var(--primary);"></div>
                 </div>
 
-                <div id="input-kb" class="mode-input">
-                    <label>Target Size (KB)</label>
-                    <input type="number" id="kbVal" placeholder="e.g. 200">
+                <div class="preview-col">
+                    <div class="preview-box">
+                        <h4>Original</h4>
+                        <img id="origImg" src="" class="preview-img">
+                        <div id="origMeta" style="font-size:0.8rem; margin-top:5px; color:#64748b;"></div>
+                    </div>
+
+                    <div class="preview-box" id="resBox" style="display:none; border:2px solid #10b981;">
+                        <h4 style="color:#10b981;">Converted Output</h4>
+                        <img id="resImg" src="" class="preview-img">
+                        <div id="resMeta" style="font-size:0.8rem; margin-top:5px; color:#64748b;"></div>
+                    </div>
+
+                    <a id="dlBtn" class="btn-download"><i class="fas fa-download"></i> Download Result</a>
                 </div>
+
             </div>
-
-            <div class="control-group">
-                <label>2. Output Format</label>
-                <select id="outputFormat">
-                    <option value="image/jpeg">JPG / JPEG</option>
-                    <option value="image/png">PNG</option>
-                    <option value="image/webp">WEBP</option>
-                </select>
-            </div>
-
-            <button class="btn-action" id="convertBtn" onclick="processImage()">Convert & Resize</button>
-            <div id="status" style="text-align:center; margin-top:10px; color:var(--primary);"></div>
-            <a id="downloadBtn" class="btn-download">Download Image</a>
-
-        </div>
-
-        <div style="margin-top:3rem; background:white; padding:1.5rem; border-radius:10px;">
-            <h2>How to use</h2>
-            <ul style="margin-left:20px; line-height:1.6; color:#475569;">
-                <li><strong>Upload:</strong> Click the box to select your image.</li>
-                <li><strong>Resize:</strong> Select "By Pixel" to set width/height, or "No Resize" just to convert format.</li>
-                <li><strong>Convert:</strong> Choose JPG, PNG, or WEBP at the bottom.</li>
-                <li><strong>Download:</strong> Click the Convert button and save your file.</li>
-            </ul>
         </div>
     </main>
 
     <footer>
-        <p>&copy; 2023 Resizefast. Privacy Policy | Contact Us</p>
+        <div class="footer-content">
+            <div class="footer-col">
+                <h5>Resizefast</h5>
+                <p>Professional client-side image processing tool. Secure, fast, and free.</p>
+            </div>
+            <div class="footer-col">
+                <h5>Legal</h5>
+                <a onclick="openModal('privacy')">Privacy Policy</a>
+                <a onclick="openModal('disclaimer')">Disclaimer</a>
+                <a onclick="openModal('terms')">Terms of Use</a>
+            </div>
+            <div class="footer-col">
+                <h5>Support</h5>
+                <a onclick="openModal('contact')">Contact Us</a>
+                <a href="#">Report Bug</a>
+            </div>
+        </div>
+        <div style="text-align:center; margin-top:2rem; font-size:0.8rem; opacity:0.6;">&copy; 2024 Resizefast. All rights reserved.</div>
     </footer>
 
-    <script>
-        // --- Variables ---
-        const fileInput = document.getElementById('fileInput');
-        const workspace = document.getElementById('workspace');
-        const imgPreview = document.getElementById('imgPreview');
-        const widthInput = document.getElementById('widthVal');
-        const heightInput = document.getElementById('heightVal');
-        
-        let originalImg = new Image();
-        let currentFile = null;
-        let preselectedTool = null; // Stores user choice from quick bar
+    <div id="modalOverlay" class="modal-overlay">
+        <div class="modal-box">
+            <i class="fas fa-times modal-close" onclick="closeModal()"></i>
+            <h2 id="modalTitle">Title</h2>
+            <div id="modalBody">Content...</div>
+        </div>
+    </div>
 
-        // --- 1. Quick Tool Logic ---
-        function useTool(toolName) {
-            preselectedTool = toolName;
-            // Directly trigger file upload
-            fileInput.click();
+    <script>
+        // --- State ---
+        const fileIn = document.getElementById('fileIn');
+        const workspace = document.getElementById('workspace');
+        let rawImg = new Image();
+        let fileData = null;
+        let toolPreset = null;
+
+        // --- 1. Quick Tools Setup ---
+        function setupTool(type) {
+            toolPreset = type;
+            fileIn.click();
         }
 
-        // --- 2. File Upload Handling ---
-        fileInput.addEventListener('change', function(e) {
-            if(e.target.files && e.target.files[0]) {
-                currentFile = e.target.files[0];
-                const reader = new FileReader();
-                
-                reader.onload = function(event) {
-                    originalImg.onload = function() {
-                        // Image loaded successfully
-                        initWorkspace();
-                    }
-                    originalImg.src = event.target.result;
-                    imgPreview.src = event.target.result;
-                }
-                reader.readAsDataURL(currentFile);
-            }
+        // --- 2. File Upload ---
+        fileIn.addEventListener('change', e => {
+            if(e.target.files[0]) loadFile(e.target.files[0]);
         });
 
-        function initWorkspace() {
+        function loadFile(file) {
+            fileData = file;
+            const reader = new FileReader();
+            reader.onload = e => {
+                rawImg.onload = () => {
+                    initEditor();
+                };
+                rawImg.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function initEditor() {
             workspace.classList.add('active');
+            document.getElementById('origImg').src = rawImg.src;
+            document.getElementById('origMeta').innerText = `${rawImg.width}x${rawImg.height} • ${(fileData.size/1024).toFixed(1)} KB`;
             
-            // Show stats
-            document.getElementById('fileMeta').innerText = 
-                `Original: ${originalImg.width}x${originalImg.height} px | ${(currentFile.size/1024).toFixed(1)} KB`;
+            // Prefill dimensions
+            document.getElementById('wIn').value = rawImg.width;
+            document.getElementById('hIn').value = rawImg.height;
 
-            // Pre-fill Pixel inputs
-            widthInput.value = originalImg.width;
-            heightInput.value = originalImg.height;
+            // Apply Preset Logic
+            const fmt = document.getElementById('fmtSel');
+            const meth = document.getElementById('methodSel');
+            const enh = document.getElementById('enhanceCheck');
 
-            // Apply Quick Tool Settings if any
-            applyToolSettings();
+            // Reset defaults
+            meth.value = 'none';
+            enh.checked = false;
+
+            if(toolPreset === 'png') fmt.value = 'image/png';
+            if(toolPreset === 'jpg') fmt.value = 'image/jpeg';
+            if(toolPreset === 'pdf') fmt.value = 'application/pdf';
+            if(toolPreset === 'clean') enh.checked = true;
+            if(toolPreset === 'compress') meth.value = 'kb';
+
+            updateUI();
+            
+            // Scroll to workspace
+            workspace.scrollIntoView({behavior:'smooth'});
+            toolPreset = null; // reset
         }
 
-        function applyToolSettings() {
-            const formatSelect = document.getElementById('outputFormat');
-            const methodSelect = document.getElementById('resizeMethod');
+        // --- 3. UI Logic ---
+        function updateUI() {
+            const m = document.getElementById('methodSel').value;
+            document.querySelectorAll('.mode-options').forEach(el => el.classList.remove('show'));
+            
+            if(m === 'pixel') document.getElementById('opt-pixel').classList.add('show');
+            if(m === 'percent') document.getElementById('opt-percent').classList.add('show');
+            if(m === 'dpi') document.getElementById('opt-dpi').classList.add('show');
+            if(m === 'kb') document.getElementById('opt-kb').classList.add('show');
+        }
 
-            if(preselectedTool === 'png') {
-                formatSelect.value = 'image/png';
-                methodSelect.value = 'none';
-            } else if(preselectedTool === 'jpg') {
-                formatSelect.value = 'image/jpeg';
-                methodSelect.value = 'none';
-            } else if(preselectedTool === 'webp') {
-                formatSelect.value = 'image/webp';
-                methodSelect.value = 'none';
-            } else if(preselectedTool === 'compress') {
-                methodSelect.value = 'kb';
+        function calcRatio(src) {
+            if(!document.getElementById('ratioCheck').checked) return;
+            const r = rawImg.width / rawImg.height;
+            if(src === 'w') document.getElementById('hIn').value = Math.round(document.getElementById('wIn').value / r);
+            else document.getElementById('wIn').value = Math.round(document.getElementById('hIn').value * r);
+        }
+
+        // --- 4. Main Processing ---
+        async function process() {
+            const status = document.getElementById('status');
+            status.innerText = "Processing image...";
+            
+            // Wait a tick for UI to update
+            await new Promise(r => setTimeout(r, 50));
+
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // A. Calculate Dimensions
+            let w = rawImg.width, h = rawImg.height;
+            const method = document.getElementById('methodSel').value;
+
+            if(method === 'pixel') {
+                w = parseInt(document.getElementById('wIn').value) || w;
+                h = parseInt(document.getElementById('hIn').value) || h;
+            } else if (method === 'percent') {
+                const p = parseInt(document.getElementById('scaleRng').value)/100;
+                w *= p; h *= p;
+            } else if (method === 'dpi') {
+                const inch = parseFloat(document.getElementById('inchIn').value);
+                const dpi = parseInt(document.getElementById('dpiIn').value);
+                if(inch && dpi) {
+                    w = inch * dpi;
+                    h = w / (rawImg.width/rawImg.height);
+                }
+            }
+
+            canvas.width = w;
+            canvas.height = h;
+
+            // B. Draw & Enhance
+            ctx.imageSmoothingQuality = 'high';
+            
+            if(document.getElementById('enhanceCheck').checked) {
+                ctx.filter = 'contrast(1.1) brightness(1.05) saturate(1.05)';
             }
             
-            // Refresh UI inputs based on the method selected
-            updateInputs();
-            // Reset tool
-            preselectedTool = null;
-        }
+            ctx.drawImage(rawImg, 0, 0, w, h);
+            ctx.filter = 'none'; // reset
 
-        // --- 3. UI Toggles ---
-        function updateInputs() {
-            const mode = document.getElementById('resizeMethod').value;
-            
-            // Hide all first
-            document.querySelectorAll('.mode-input').forEach(div => div.classList.remove('show'));
+            // C. Output Generation
+            const format = document.getElementById('fmtSel').value;
 
-            // Show selected
-            if(mode === 'pixel') document.getElementById('input-pixel').classList.add('show');
-            if(mode === 'percent') document.getElementById('input-percent').classList.add('show');
-            if(mode === 'dpi') document.getElementById('input-dpi').classList.add('show');
-            if(mode === 'kb') document.getElementById('input-kb').classList.add('show');
-        }
-
-        // --- 4. Aspect Ratio Math ---
-        function calcRatio(source) {
-            if(!document.getElementById('aspectRatio').checked) return;
-
-            const ratio = originalImg.width / originalImg.height;
-
-            if(source === 'w') {
-                heightInput.value = Math.round(widthInput.value / ratio);
+            if(format === 'application/pdf') {
+                generatePDF(canvas);
+            } else if (method === 'kb') {
+                processKB(canvas, format);
             } else {
-                widthInput.value = Math.round(heightInput.value * ratio);
+                canvas.toBlob(blob => showResult(blob, format), format, 0.95);
             }
         }
 
-        // --- 5. Main Processing ---
-        function processImage() {
-            const status = document.getElementById('status');
-            const downloadBtn = document.getElementById('downloadBtn');
-            const convertBtn = document.getElementById('convertBtn');
-            
-            status.innerText = "Processing...";
-            downloadBtn.style.display = 'none';
+        // --- 5. PDF Generation (A4) ---
+        function generatePDF(canvas) {
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF({
+                orientation: 'p',
+                unit: 'mm',
+                format: 'a4'
+            });
 
-            // Give the UI a moment to update text
-            setTimeout(() => {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                const method = document.getElementById('resizeMethod').value;
-                const format = document.getElementById('outputFormat').value;
-
-                let w = originalImg.width;
-                let h = originalImg.height;
-
-                // 1. Calculate Dimensions
-                if(method === 'pixel') {
-                    w = parseInt(widthInput.value) || w;
-                    h = parseInt(heightInput.value) || h;
-                } 
-                else if (method === 'percent') {
-                    const p = parseInt(document.getElementById('percVal').value) / 100;
-                    w = w * p;
-                    h = h * p;
-                }
-                else if (method === 'dpi') {
-                    const inches = parseFloat(document.getElementById('inchVal').value);
-                    const dpi = parseInt(document.getElementById('dpiVal').value);
-                    if(inches && dpi) {
-                        w = inches * dpi;
-                        h = w / (originalImg.width / originalImg.height);
-                    }
-                }
-
-                canvas.width = w;
-                canvas.height = h;
-
-                // 2. Draw
-                // Use better quality smoothing
-                ctx.imageSmoothingEnabled = true;
-                ctx.imageSmoothingQuality = "high";
-                ctx.drawImage(originalImg, 0, 0, w, h);
-
-                // 3. Output
-                if(method === 'kb') {
-                    // Special compression loop
-                    handleKBCompression(canvas, format);
-                } else {
-                    // Standard export
-                    canvas.toBlob(function(blob) {
-                        showDownload(blob, format);
-                    }, format, 0.92); // 0.92 is standard high quality
-                }
-            }, 100);
-        }
-
-        function handleKBCompression(canvas, format) {
-            const targetKB = parseInt(document.getElementById('kbVal').value);
-            if(!targetKB) { alert("Please enter target KB"); return; }
-
-            let min = 0;
-            let max = 1;
-            let quality = 0.8;
-            let attempts = 0;
-
-            function attempt() {
-                canvas.toBlob(blob => {
-                    const kb = blob.size / 1024;
-                    attempts++;
-
-                    // If we are close enough or ran out of attempts
-                    if( (kb <= targetKB && kb > targetKB * 0.9) || attempts > 8 || quality < 0.05) {
-                        showDownload(blob, format);
-                        return;
-                    }
-
-                    // Binary search for quality
-                    if(kb > targetKB) {
-                        max = quality;
-                    } else {
-                        min = quality;
-                    }
-                    quality = (min + max) / 2;
-                    attempt();
-
-                }, format, quality);
-            }
-            attempt();
-        }
-
-        function showDownload(blob, format) {
-            const url = URL.createObjectURL(blob);
-            const downloadBtn = document.getElementById('downloadBtn');
-            const status = document.getElementById('status');
-            
-            // Determine extension
-            let ext = "jpg";
-            if(format === "image/png") ext = "png";
-            if(format === "image/webp") ext = "webp";
-
-            downloadBtn.href = url;
-            downloadBtn.download = `converted_image.${ext}`;
-            downloadBtn.style.display = 'block';
-            downloadBtn.innerText = `Download Image (${(blob.size/1024).toFixed(1)} KB)`;
-            
-            status.innerText = "Done!";
-        }
-
-    </script>
-</body>
-</html>
+            const imgData = canvas.toDataURL('i
