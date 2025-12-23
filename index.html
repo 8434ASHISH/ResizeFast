@@ -3,278 +3,314 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Resizefast - Pro Image Suite</title>
+    <title>Resizefast | Professional Image Suite</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        :root { --p: #2563eb; --s: #1e40af; --bg: #f8fafc; --txt: #1e293b; --brd: #e2e8f0; }
-        body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--txt); margin: 0; padding: 0; }
+        :root {
+            --primary: #6366f1; /* Indigo 500 */
+            --primary-hover: #4f46e5;
+            --bg: #0f172a; /* Slate 900 */
+            --card: #1e293b; /* Slate 800 */
+            --text-white: #f8fafc;
+            --text-dim: #94a3b8;
+            --accent: #10b981; /* Emerald 500 */
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', system-ui, sans-serif; }
+        body { background-color: var(--bg); color: var(--text-white); min-height: 100vh; overflow-x: hidden; }
+
+        /* Navigation */
+        nav { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); padding: 1rem 5%; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .logo { font-size: 1.5rem; font-weight: 800; letter-spacing: -1px; color: var(--text-white); display: flex; align-items: center; gap: 10px; }
+        .logo span { color: var(--primary); }
+
+        /* Layout */
+        .app-container { display: flex; max-width: 1400px; margin: 0 auto; height: calc(100vh - 70px); }
+        @media (max-width: 1024px) { .app-container { flex-direction: column; height: auto; } }
+
+        /* Sidebar Settings */
+        .sidebar { width: 380px; background: var(--card); border-right: 1px solid var(--border); padding: 2rem; overflow-y: auto; }
+        @media (max-width: 1024px) { .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border); } }
+
+        /* Main Workspace */
+        .workspace { flex: 1; padding: 2rem; display: flex; flex-direction: column; gap: 2rem; background: radial-gradient(circle at top right, #1e1b4b, #0f172a); }
+
+        /* UI Components */
+        .section-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); margin-bottom: 1rem; display: block; font-weight: 700; }
+        .control-group { margin-bottom: 2rem; }
         
-        /* Navbar */
-        nav { background: #fff; padding: 1rem 5%; border-bottom: 1px solid var(--brd); display: flex; justify-content: space-between; align-items: center; }
-        .logo { font-size: 1.5rem; font-weight: 800; color: var(--p); display: flex; align-items: center; gap: 8px; }
+        select, input[type="number"], input[type="text"] {
+            width: 100%; background: #0f172a; border: 1px solid var(--border); border-radius: 8px; padding: 0.8rem; color: white; outline: none; transition: 0.2s;
+        }
+        select:focus, input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2); }
 
-        /* Quick Bar */
-        .bar { background: #fff; padding: 0.8rem 5%; display: flex; gap: 10px; overflow-x: auto; border-bottom: 1px solid var(--brd); }
-        .t-btn { background: #eff6ff; border: 1px solid #bfdbfe; color: var(--p); padding: 8px 18px; border-radius: 50px; cursor: pointer; white-space: nowrap; font-weight: 600; font-size: 0.85rem; }
-        .t-btn:hover { background: var(--p); color: #fff; }
+        .btn-main { width: 100%; background: var(--primary); color: white; border: none; padding: 1rem; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.3s; font-size: 1rem; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-main:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3); }
 
-        /* Main */
-        .container { max-width: 1000px; margin: 2rem auto; padding: 0 1rem; }
-        .card { background: #fff; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); padding: 2rem; }
+        /* Comparison Engine */
+        .comparison-view { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; flex: 1; }
+        @media (max-width: 768px) { .comparison-view { grid-template-columns: 1fr; } }
 
-        /* Upload area */
-        .up-zone { border: 2px dashed #cbd5e1; border-radius: 12px; padding: 3rem; text-align: center; cursor: pointer; transition: 0.2s; margin-bottom: 2rem; }
-        .up-zone:hover { border-color: var(--p); background: #f0f9ff; }
+        .view-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+        .view-card img { max-width: 100%; max-height: 400px; border-radius: 8px; object-fit: contain; }
+        .badge { position: absolute; top: 1rem; left: 1rem; background: rgba(0,0,0,0.5); padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: bold; border: 1px solid var(--border); }
 
-        /* Editor Grid */
-        .grid { display: none; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem; }
-        .grid.active { display: grid; }
-        @media (max-width: 768px) { .grid.active { grid-template-columns: 1fr; } }
+        .file-info { margin-top: 1rem; text-align: center; }
+        .file-info .size { font-size: 1.25rem; font-weight: 800; color: var(--accent); }
+        .file-info .res { font-size: 0.8rem; color: var(--text-dim); }
 
-        /* Inputs */
-        .group { margin-bottom: 1.2rem; }
-        label { display: block; font-weight: 700; font-size: 0.9rem; margin-bottom: 0.4rem; color: #475569; }
-        select, input { width: 100%; padding: 0.7rem; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem; box-sizing: border-box; }
-        .hidden-opt { display: none; background: #f1f5f9; padding: 10px; border-radius: 8px; margin-top: 5px; }
-        .hidden-opt.show { display: block; }
+        /* Dropzone Styling */
+        .dropzone { border: 2px dashed var(--border); border-radius: 20px; padding: 4rem 2rem; text-align: center; cursor: pointer; transition: 0.3s; background: rgba(255,255,255,0.02); }
+        .dropzone:hover { border-color: var(--primary); background: rgba(99, 102, 241, 0.05); }
+        .dropzone i { font-size: 3rem; color: var(--primary); margin-bottom: 1rem; }
 
-        /* Buttons */
-        .go-btn { width: 100%; background: var(--p); color: #fff; border: none; padding: 1rem; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 1rem; }
-        .go-btn:hover { background: var(--s); }
-        .dl-btn { display: inline-block; background: #059669; color: #fff; padding: 10px 25px; border-radius: 8px; text-decoration: none; font-weight: 700; margin-top: 15px; }
+        .hidden { display: none !important; }
 
-        /* Preview images */
-        img { max-width: 100%; border-radius: 8px; border: 1px solid var(--brd); max-height: 250px; }
-        .status { margin-top: 10px; padding: 10px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; text-align: center; }
-        .error { background: #fee2e2; color: #991b1b; }
-        .success { background: #dcfce7; color: #166534; }
-
-        /* Footer */
-        footer { background: #0f172a; color: #94a3b8; padding: 3rem 5%; margin-top: 4rem; }
-        .f-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; }
+        /* Footer Info */
+        .footer-links { margin-top: 3rem; display: flex; gap: 1.5rem; font-size: 0.8rem; color: var(--text-dim); }
+        .footer-links a { color: var(--text-dim); text-decoration: none; }
+        .footer-links a:hover { color: var(--text-white); }
     </style>
 </head>
 <body>
 
-<nav>
-    <div class="logo"><i class="fas fa-image"></i> Resizefast</div>
-</nav>
+    <nav>
+        <div class="logo"><i class="fas fa-expand-arrows-alt"></i> RESIZE<span>FAST</span></div>
+        <div style="font-size: 0.8rem; background: var(--accent); color: #000; padding: 2px 8px; border-radius: 4px; font-weight: bold;">PRO v8.0</div>
+    </nav>
 
-<div class="bar">
-    <button class="t-btn" onclick="quickTool('image/png')">JPG to PNG</button>
-    <button class="t-btn" onclick="quickTool('image/jpeg')">PNG to JPG</button>
-    <button class="t-btn" onclick="quickTool('image/webp')">To WEBP</button>
-    <button class="t-btn" onclick="quickTool('pdf')">Convert to PDF</button>
-</div>
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="control-group">
+                <span class="section-label">1. Conversion Settings</span>
+                <label style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 5px; display: block;">Resize Mode</label>
+                <select id="resizeMode" onchange="toggleInputs()">
+                    <option value="none">Original Dimensions</option>
+                    <option value="pixel">Custom Pixels (W & H)</option>
+                    <option value="percentage">Percentage Scaling</option>
+                    <option value="kb">Target File Size (KB)</option>
+                </select>
 
-<div class="container">
-    <div class="card">
-        <div class="up-zone" onclick="document.getElementById('fin').click()">
-            <i class="fas fa-cloud-upload-alt" style="font-size:3rem; color:var(--p); margin-bottom:1rem;"></i>
-            <h2>Click to Select Image</h2>
-            <p>Maximum size: 50MB</p>
-            <input type="file" id="fin" accept="image/*" hidden>
-        </div>
-
-        <div id="editor" class="grid">
-            <div class="side">
-                <div class="group">
-                    <label>Resize Strategy</label>
-                    <select id="mode" onchange="toggleUI()">
-                        <option value="none">No Resize (Quality Only)</option>
-                        <option value="px">Specific Pixels</option>
-                        <option value="kb">Target File Size (KB)</option>
-                    </select>
-                    <div id="ui-px" class="hidden-opt">
-                        <div style="display:flex; gap:10px;">
-                            <input type="number" id="wIn" placeholder="Width">
-                            <input type="number" id="hIn" placeholder="Height">
-                        </div>
-                    </div>
-                    <div id="ui-kb" class="hidden-opt">
-                        <input type="number" id="kbIn" placeholder="e.g. 500">
-                    </div>
+                <div id="pixelInputs" class="hidden" style="margin-top: 10px; display: flex; gap: 10px;">
+                    <input type="number" id="targetWidth" placeholder="Width" oninput="maintainRatio('w')">
+                    <input type="number" id="targetHeight" placeholder="Height" oninput="maintainRatio('h')">
                 </div>
 
-                <div class="group">
-                    <label>Output Format</label>
-                    <select id="fmt">
-                        <option value="image/jpeg">JPG / JPEG</option>
-                        <option value="image/png">PNG</option>
-                        <option value="image/webp">WEBP</option>
-                        <option value="pdf">PDF Document</option>
-                    </select>
+                <div id="percentageInput" class="hidden" style="margin-top: 10px;">
+                    <input type="number" id="scalePercent" value="50" placeholder="e.g. 50%">
                 </div>
 
-                <div class="group" style="background:#f0fdf4; padding:10px; border-radius:8px; display:flex; align-items:center; gap:8px;">
-                    <input type="checkbox" id="enhance" style="width:auto;" checked>
-                    <label style="margin:0;">Clear & Brighten Output</label>
+                <div id="kbInput" class="hidden" style="margin-top: 10px;">
+                    <input type="number" id="targetKB" placeholder="Max KB (e.g. 300)">
                 </div>
-
-                <button class="go-btn" onclick="process()">Process Image Now</button>
-                <div id="msg" class="status"></div>
             </div>
 
-            <div class="side" style="text-align:center; background:#f8fafc; padding:1rem; border-radius:8px;">
-                <h4>Result Preview</h4>
-                <img id="resImg" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=">
-                <div id="resMeta" style="margin-top:5px; font-size:0.8rem; color:#64748b;"></div>
-                <a id="dl" class="dl-btn" style="display:none;" download>Download File</a>
+            <div class="control-group">
+                <span class="section-label">2. Output Format</span>
+                <select id="outputFormat">
+                    <option value="image/jpeg">JPEG (Optimized)</option>
+                    <option value="image/png">PNG (Lossless)</option>
+                    <option value="image/webp">WebP (Modern)</option>
+                    <option value="application/pdf">PDF (Document)</option>
+                </select>
             </div>
-        </div>
+
+            <div class="control-group">
+                <span class="section-label">3. Advanced Processing</span>
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                    <input type="checkbox" id="enhanceImage" checked> 
+                    <span style="font-size: 0.9rem;">Auto-Enhance & Sharpen</span>
+                </label>
+            </div>
+
+            <button class="btn-main" onclick="processImage()">
+                <i class="fas fa-sync-alt"></i> PROCESS IMAGE
+            </button>
+
+            <div id="status" style="margin-top: 1rem; font-size: 0.8rem; text-align: center;"></div>
+        </aside>
+
+        <main class="workspace">
+            <div id="dropzone" class="dropzone" onclick="document.getElementById('fileIn').click()">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <h2>Upload Image</h2>
+                <p>Drag and drop or click to browse (Max 50MB)</p>
+                <input type="file" id="fileIn" accept="image/*" class="hidden">
+            </div>
+
+            <div id="previewArea" class="comparison-view hidden">
+                <div class="view-card">
+                    <div class="badge">ORIGINAL</div>
+                    <img id="origImgPreview" src="">
+                    <div class="file-info">
+                        <div class="size" id="origSize">0 KB</div>
+                        <div class="res" id="origRes">0 x 0</div>
+                    </div>
+                </div>
+
+                <div class="view-card">
+                    <div class="badge" style="color: var(--accent);">RESULT</div>
+                    <img id="resultImgPreview" src="">
+                    <div class="file-info">
+                        <div class="size" id="resultSize">0 KB</div>
+                        <div class="res" id="resultRes">0 x 0</div>
+                    </div>
+                    <a id="downloadBtn" download="resized_image" class="btn-main" style="margin-top: 1rem; background: var(--accent);">
+                        <i class="fas fa-download"></i> DOWNLOAD
+                    </a>
+                </div>
+            </div>
+
+            <div class="footer-links">
+                <a href="#" onclick="alert('Privacy Policy: All processing is local.')">Privacy Policy</a>
+                <a href="#" onclick="alert('Disclaimer: No data is saved on servers.')">Disclaimer</a>
+                <a href="#" onclick="alert('Contact: support@resizefast.com')">Contact Us</a>
+                <span>&copy; 2024 Resizefast. Professional Client-Side Suite.</span>
+            </div>
+        </main>
     </div>
 
-    <div class="card" style="margin-top:2rem;">
-        <h3>How to use Resizefast</h3>
-        <p>1. <strong>Upload:</strong> Pick an image (up to 50MB). The tool works 100% in your browser.</p>
-        <p>2. <strong>Settings:</strong> Select "Target KB" to shrink file size, or "Pixels" to change dimensions.</p>
-        <p>3. <strong>Quality:</strong> We apply a sharpening filter automatically to prevent blur.</p>
-    </div>
-</div>
-
-<footer>
-    <div class="f-grid">
-        <div><strong>Resizefast</strong><br>Private browser-based tools.</div>
-        <div><strong>Legal</strong><br><a href="#" class="footer-link">Privacy Policy</a><br><a href="#" class="footer-link">Disclaimer</a></div>
-        <div><strong>Contact</strong><br>support@resizefast.com</div>
-    </div>
-</footer>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
-<script>
-    const fin = document.getElementById('fin');
-    const editor = document.getElementById('editor');
-    const resImg = document.getElementById('resImg');
-    const msg = document.getElementById('msg');
-    const dl = document.getElementById('dl');
-    let source = new Image();
-    let originalFile = null;
-
-    // 1. Tool Logic
-    function quickTool(targetFmt) {
-        document.getElementById('fmt').value = targetFmt === 'pdf' ? 'pdf' : targetFmt;
-        fin.click();
-    }
-
-    // 2. File Loading
-    fin.onchange = (e) => {
-        const file = e.target.files[0];
-        if(!file) return;
-        if(file.size > 50 * 1024 * 1024) { alert("File too large (50MB limit)"); return; }
+    <script>
+        const fileIn = document.getElementById('fileIn');
+        const dropzone = document.getElementById('dropzone');
+        const previewArea = document.getElementById('previewArea');
+        const sidebar = document.getElementById('sidebar');
         
-        originalFile = file;
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-            source.onload = () => {
-                editor.classList.add('active');
-                document.getElementById('wIn').value = source.width;
-                document.getElementById('hIn').value = source.height;
-                msg.className = "status success";
-                msg.innerText = "Image Loaded Successfully";
+        let originalImg = new Image();
+        let originalFile = null;
+
+        // 1. Handling Files
+        fileIn.onchange = e => handleUpload(e.target.files[0]);
+        
+        dropzone.ondragover = e => { e.preventDefault(); dropzone.style.borderColor = 'var(--primary)'; };
+        dropzone.ondrop = e => { e.preventDefault(); handleUpload(e.dataTransfer.files[0]); };
+
+        function handleUpload(file) {
+            if (!file || !file.type.startsWith('image/')) return;
+            if (file.size > 50 * 1024 * 1024) { alert("File too large (Max 50MB)"); return; }
+
+            originalFile = file;
+            const reader = new FileReader();
+            reader.onload = e => {
+                originalImg.onload = () => {
+                    dropzone.classList.add('hidden');
+                    previewArea.classList.remove('hidden');
+                    
+                    document.getElementById('origImgPreview').src = originalImg.src;
+                    document.getElementById('origSize').innerText = (file.size / 1024).toFixed(1) + " KB";
+                    document.getElementById('origRes').innerText = `${originalImg.width} x ${originalImage.height}`;
+                    
+                    // Reset inputs
+                    document.getElementById('targetWidth').value = originalImg.width;
+                    document.getElementById('targetHeight').value = originalImg.height;
+                };
+                originalImg.src = e.target.result;
             };
-            source.src = ev.target.result;
-        };
-        reader.readAsDataURL(file);
-    };
-
-    function toggleUI() {
-        const m = document.getElementById('mode').value;
-        document.getElementById('ui-px').className = (m === 'px' ? 'hidden-opt show' : 'hidden-opt');
-        document.getElementById('ui-kb').className = (m === 'kb' ? 'hidden-opt show' : 'hidden-opt');
-    }
-
-    // 3. Processing
-    async function process() {
-        msg.className = "status";
-        msg.innerText = "Processing...";
-        dl.style.display = 'none';
-
-        const cvs = document.createElement('canvas');
-        const ctx = cvs.getContext('2d');
-        const mode = document.getElementById('mode').value;
-        const fmt = document.getElementById('fmt').value;
-
-        let w = source.width, h = source.height;
-        if(mode === 'px') {
-            w = parseInt(document.getElementById('wIn').value) || w;
-            h = parseInt(document.getElementById('hIn').value) || h;
+            reader.readAsDataURL(file);
         }
 
-        cvs.width = w; cvs.height = h;
-
-        // Enhance / Sharpening Filters
-        if(document.getElementById('enhance').checked) {
-            ctx.filter = "brightness(1.05) contrast(1.1) saturate(1.05)";
+        function toggleInputs() {
+            const mode = document.getElementById('resizeMode').value;
+            document.getElementById('pixelInputs').classList.toggle('hidden', mode !== 'pixel');
+            document.getElementById('percentageInput').classList.toggle('hidden', mode !== 'percentage');
+            document.getElementById('kbInput').classList.toggle('hidden', mode !== 'kb');
         }
 
-        ctx.drawImage(source, 0, 0, w, h);
-
-        if(fmt === 'pdf') {
-            savePDF(cvs);
-        } else if (mode === 'kb') {
-            compressKB(cvs, fmt);
-        } else {
-            cvs.toBlob(b => finish(b, fmt), fmt, 0.92);
+        function maintainRatio(type) {
+            const ratio = originalImg.width / originalImg.height;
+            const wInput = document.getElementById('targetWidth');
+            const hInput = document.getElementById('targetHeight');
+            if (type === 'w') hInput.value = Math.round(wInput.value / ratio);
+            else wInput.value = Math.round(hInput.value * ratio);
         }
-    }
 
-    function compressKB(cvs, fmt) {
-        const target = parseInt(document.getElementById('kbIn').value);
-        if(!target) { alert("Please enter KB size"); return; }
-        let q = 0.9, min = 0, max = 1;
-        
-        const run = () => {
-            cvs.toBlob(blob => {
-                const kb = blob.size / 1024;
-                if((kb > target && q > 0.1) || (kb < target * 0.8 && q < 0.95)) {
-                    if(kb > target) max = q; else min = q;
-                    q = (min+max)/2;
-                    run();
-                } else {
-                    finish(blob, fmt);
-                }
-            }, fmt, q);
-        };
-        run();
-    }
+        // 2. High Performance Processing
+        async function processImage() {
+            if (!originalFile) return;
+            const status = document.getElementById('status');
+            status.innerText = "Applying algorithms...";
 
-    function savePDF(cvs) {
-        try {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const mode = document.getElementById('resizeMode').value;
+            const format = document.getElementById('outputFormat').value;
+            const enhance = document.getElementById('enhanceImage').checked;
+
+            let w = originalImg.width;
+            let h = originalImg.height;
+
+            if (mode === 'pixel') {
+                w = parseInt(document.getElementById('targetWidth').value) || w;
+                h = parseInt(document.getElementById('targetHeight').value) || h;
+            } else if (mode === 'percentage') {
+                const p = parseInt(document.getElementById('scalePercent').value) / 100;
+                w *= p; h *= p;
+            }
+
+            canvas.width = w;
+            canvas.height = h;
+
+            // Pro-Rendering
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            
+            if (enhance) {
+                // Brightness/Contrast/Sharpness simulation
+                ctx.filter = "contrast(1.05) brightness(1.02) saturate(1.05)";
+            }
+            
+            ctx.drawImage(originalImg, 0, 0, w, h);
+
+            if (format === 'application/pdf') {
+                savePDF(canvas);
+            } else if (mode === 'kb') {
+                compressToKB(canvas, format);
+            } else {
+                canvas.toBlob(blob => renderResult(blob, format), format, 0.92);
+            }
+        }
+
+        function compressToKB(canvas, format) {
+            const target = parseInt(document.getElementById('targetKB').value);
+            let q = 0.9;
+            const step = () => {
+                canvas.toBlob(blob => {
+                    if (blob.size / 1024 > target && q > 0.1) {
+                        q -= 0.1;
+                        step();
+                    } else {
+                        renderResult(blob, format);
+                    }
+                }, format, q);
+            };
+            step();
+        }
+
+        function savePDF(canvas) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF('p', 'mm', 'a4');
-            const data = cvs.toDataURL('image/jpeg', 0.95);
-            
-            const ratio = cvs.width / cvs.height;
-            let pW = 190; // mm
-            let pH = pW / ratio;
-            if(pH > 270) { pH = 270; pW = pH * ratio; }
-
-            doc.addImage(data, 'JPEG', 10, 10, pW, pH);
-            doc.save("resizefast_file.pdf");
-            
-            resImg.src = data;
-            msg.innerText = "PDF Downloaded!";
-            msg.className = "status success";
-        } catch(e) {
-            msg.innerText = "PDF Library failed. Try JPG/PNG instead.";
-            msg.className = "status error";
+            const data = canvas.toDataURL('image/jpeg', 0.95);
+            doc.addImage(data, 'JPEG', 10, 10, 190, (190 * canvas.height) / canvas.width);
+            doc.save("resizefast_pro.pdf");
+            document.getElementById('status').innerText = "PDF Exported Successfully.";
         }
-    }
 
-    function finish(blob, fmt) {
-        const url = URL.createObjectURL(blob);
-        resImg.src = url;
-        dl.href = url;
-        dl.download = `converted.${fmt.split('/')[1]}`;
-        dl.style.display = 'inline-block';
-        
-        document.getElementById('resMeta').innerText = `New Size: ${(blob.size/1024).toFixed(1)} KB`;
-        msg.innerText = "Conversion Complete!";
-        msg.className = "status success";
-    }
-</script>
-
+        function renderResult(blob, format) {
+            const url = URL.createObjectURL(blob);
+            const resImg = document.getElementById('resultImgPreview');
+            const dlBtn = document.getElementById('downloadBtn');
+            
+            resImg.src = url;
+            document.getElementById('resultSize').innerText = (blob.size / 1024).toFixed(1) + " KB";
+            document.getElementById('resultRes').innerText = `${resImg.naturalWidth || 'Processing'} x ${resImg.naturalHeight || '...'}`;
+            
+            dlBtn.href = url;
+            dlBtn.download = `resizefast_${Date.now()}.${format.split('/')[1]}`;
+            
+            document.getElementById('status').innerText = "Ready for download.";
+        }
+    </script>
 </body>
 </html>
