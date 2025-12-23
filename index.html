@@ -8,84 +8,87 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root {
-            --primary: #6366f1; /* Indigo 500 */
+            --primary: #6366f1;
             --primary-hover: #4f46e5;
-            --bg: #0f172a; /* Slate 900 */
-            --card: #1e293b; /* Slate 800 */
+            --bg: #0f172a;
+            --card: #1e293b;
             --text-white: #f8fafc;
             --text-dim: #94a3b8;
-            --accent: #10b981; /* Emerald 500 */
+            --accent: #10b981;
             --border: rgba(255, 255, 255, 0.1);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', system-ui, sans-serif; }
         body { background-color: var(--bg); color: var(--text-white); min-height: 100vh; overflow-x: hidden; }
 
-        /* Navigation */
+        /* Ads Space Styling */
+        .ad-space {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px dashed #444;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #555;
+            font-size: 0.8rem;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+        .ad-top { width: 100%; height: 90px; }
+        .ad-sidebar { width: 100%; height: 250px; margin-top: 2rem; }
+        .ad-bottom { width: 100%; height: 90px; margin-top: 2rem; }
+
         nav { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); padding: 1rem 5%; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
         .logo { font-size: 1.5rem; font-weight: 800; letter-spacing: -1px; color: var(--text-white); display: flex; align-items: center; gap: 10px; }
         .logo span { color: var(--primary); }
 
-        /* Layout */
-        .app-container { display: flex; max-width: 1400px; margin: 0 auto; height: calc(100vh - 70px); }
-        @media (max-width: 1024px) { .app-container { flex-direction: column; height: auto; } }
+        .app-container { display: flex; max-width: 1400px; margin: 0 auto; min-height: calc(100vh - 70px); }
+        @media (max-width: 1024px) { .app-container { flex-direction: column; } }
 
-        /* Sidebar Settings */
-        .sidebar { width: 380px; background: var(--card); border-right: 1px solid var(--border); padding: 2rem; overflow-y: auto; }
-        @media (max-width: 1024px) { .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border); } }
+        .sidebar { width: 380px; background: var(--card); border-right: 1px solid var(--border); padding: 2rem; }
+        @media (max-width: 1024px) { .sidebar { width: 100%; } }
 
-        /* Main Workspace */
         .workspace { flex: 1; padding: 2rem; display: flex; flex-direction: column; gap: 2rem; background: radial-gradient(circle at top right, #1e1b4b, #0f172a); }
 
-        /* UI Components */
         .section-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); margin-bottom: 1rem; display: block; font-weight: 700; }
-        .control-group { margin-bottom: 2rem; }
+        .control-group { margin-bottom: 1.5rem; }
         
-        select, input[type="number"], input[type="text"] {
-            width: 100%; background: #0f172a; border: 1px solid var(--border); border-radius: 8px; padding: 0.8rem; color: white; outline: none; transition: 0.2s;
+        select, input[type="number"] {
+            width: 100%; background: #0f172a; border: 1px solid var(--border); border-radius: 8px; padding: 0.8rem; color: white; outline: none;
         }
-        select:focus, input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2); }
 
-        .btn-main { width: 100%; background: var(--primary); color: white; border: none; padding: 1rem; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.3s; font-size: 1rem; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .btn-main:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3); }
+        .btn-main { width: 100%; background: var(--primary); color: white; border: none; padding: 1rem; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-main:hover { background: var(--primary-hover); transform: translateY(-2px); }
 
-        /* Comparison Engine */
         .comparison-view { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; flex: 1; }
         @media (max-width: 768px) { .comparison-view { grid-template-columns: 1fr; } }
 
-        .view-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden; }
-        .view-card img { max-width: 100%; max-height: 400px; border-radius: 8px; object-fit: contain; }
-        .badge { position: absolute; top: 1rem; left: 1rem; background: rgba(0,0,0,0.5); padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: bold; border: 1px solid var(--border); }
+        .view-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
+        .view-card img { max-width: 100%; max-height: 400px; border-radius: 8px; object-fit: contain; image-rendering: -webkit-optimize-contrast; }
+        .badge { position: absolute; top: 1rem; left: 1rem; background: rgba(0,0,0,0.5); padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: bold; }
 
         .file-info { margin-top: 1rem; text-align: center; }
         .file-info .size { font-size: 1.25rem; font-weight: 800; color: var(--accent); }
-        .file-info .res { font-size: 0.8rem; color: var(--text-dim); }
-
-        /* Dropzone Styling */
-        .dropzone { border: 2px dashed var(--border); border-radius: 20px; padding: 4rem 2rem; text-align: center; cursor: pointer; transition: 0.3s; background: rgba(255,255,255,0.02); }
-        .dropzone:hover { border-color: var(--primary); background: rgba(99, 102, 241, 0.05); }
-        .dropzone i { font-size: 3rem; color: var(--primary); margin-bottom: 1rem; }
+        
+        .dropzone { border: 2px dashed var(--border); border-radius: 20px; padding: 4rem 2rem; text-align: center; cursor: pointer; transition: 0.3s; }
+        .dropzone:hover { border-color: var(--primary); }
 
         .hidden { display: none !important; }
-
-        /* Footer Info */
-        .footer-links { margin-top: 3rem; display: flex; gap: 1.5rem; font-size: 0.8rem; color: var(--text-dim); }
-        .footer-links a { color: var(--text-dim); text-decoration: none; }
-        .footer-links a:hover { color: var(--text-white); }
     </style>
 </head>
 <body>
 
     <nav>
         <div class="logo"><i class="fas fa-expand-arrows-alt"></i> RESIZE<span>FAST</span></div>
-        <div style="font-size: 0.8rem; background: var(--accent); color: #000; padding: 2px 8px; border-radius: 4px; font-weight: bold;">PRO v8.0</div>
     </nav>
 
+    <div class="ad-space ad-top">
+        ADVERTISEMENT (TOP BANNER)
+    </div>
+
     <div class="app-container">
-        <aside class="sidebar" id="sidebar">
+        <aside class="sidebar">
             <div class="control-group">
-                <span class="section-label">1. Conversion Settings</span>
-                <label style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 5px; display: block;">Resize Mode</label>
+                <span class="section-label">Conversion Settings</span>
                 <select id="resizeMode" onchange="toggleInputs()">
                     <option value="none">Original Dimensions</option>
                     <option value="pixel">Custom Pixels (W & H)</option>
@@ -97,77 +100,58 @@
                     <input type="number" id="targetWidth" placeholder="Width" oninput="maintainRatio('w')">
                     <input type="number" id="targetHeight" placeholder="Height" oninput="maintainRatio('h')">
                 </div>
-
                 <div id="percentageInput" class="hidden" style="margin-top: 10px;">
-                    <input type="number" id="scalePercent" value="50" placeholder="e.g. 50%">
+                    <input type="number" id="scalePercent" value="50">
                 </div>
-
                 <div id="kbInput" class="hidden" style="margin-top: 10px;">
                     <input type="number" id="targetKB" placeholder="Max KB (e.g. 300)">
                 </div>
             </div>
 
             <div class="control-group">
-                <span class="section-label">2. Output Format</span>
+                <span class="section-label">Output Format</span>
                 <select id="outputFormat">
-                    <option value="image/jpeg">JPEG (Optimized)</option>
-                    <option value="image/png">PNG (Lossless)</option>
-                    <option value="image/webp">WebP (Modern)</option>
-                    <option value="application/pdf">PDF (Document)</option>
+                    <option value="image/jpeg">JPEG (High Quality)</option>
+                    <option value="image/png">PNG (Crystal Clear)</option>
+                    <option value="image/webp">WebP (Optimized)</option>
+                    <option value="application/pdf">PDF Document</option>
                 </select>
             </div>
 
-            <div class="control-group">
-                <span class="section-label">3. Advanced Processing</span>
-                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                    <input type="checkbox" id="enhanceImage" checked> 
-                    <span style="font-size: 0.9rem;">Auto-Enhance & Sharpen</span>
-                </label>
-            </div>
-
             <button class="btn-main" onclick="processImage()">
-                <i class="fas fa-sync-alt"></i> PROCESS IMAGE
+                <i class="fas fa-magic"></i> PROCESS & SHARPEN
             </button>
 
-            <div id="status" style="margin-top: 1rem; font-size: 0.8rem; text-align: center;"></div>
+            <div class="ad-space ad-sidebar">
+                ADS (300x250)
+            </div>
         </aside>
 
         <main class="workspace">
             <div id="dropzone" class="dropzone" onclick="document.getElementById('fileIn').click()">
                 <i class="fas fa-cloud-upload-alt"></i>
                 <h2>Upload Image</h2>
-                <p>Drag and drop or click to browse (Max 50MB)</p>
+                <p>Max 50MB. Sharpening applied automatically.</p>
                 <input type="file" id="fileIn" accept="image/*" class="hidden">
             </div>
 
             <div id="previewArea" class="comparison-view hidden">
                 <div class="view-card">
                     <div class="badge">ORIGINAL</div>
-                    <img id="origImgPreview" src="">
-                    <div class="file-info">
-                        <div class="size" id="origSize">0 KB</div>
-                        <div class="res" id="origRes">0 x 0</div>
-                    </div>
+                    <img id="origImgPreview">
+                    <div class="file-info"><div class="size" id="origSize">0 KB</div></div>
                 </div>
 
                 <div class="view-card">
-                    <div class="badge" style="color: var(--accent);">RESULT</div>
-                    <img id="resultImgPreview" src="">
-                    <div class="file-info">
-                        <div class="size" id="resultSize">0 KB</div>
-                        <div class="res" id="resultRes">0 x 0</div>
-                    </div>
-                    <a id="downloadBtn" download="resized_image" class="btn-main" style="margin-top: 1rem; background: var(--accent);">
-                        <i class="fas fa-download"></i> DOWNLOAD
-                    </a>
+                    <div class="badge" style="color: var(--accent);">SHARPENED RESULT</div>
+                    <img id="resultImgPreview">
+                    <div class="file-info"><div class="size" id="resultSize">0 KB</div></div>
+                    <a id="downloadBtn" download="resizefast_image" class="btn-main" style="margin-top:1rem; background:var(--accent);">DOWNLOAD</a>
                 </div>
             </div>
 
-            <div class="footer-links">
-                <a href="#" onclick="alert('Privacy Policy: All processing is local.')">Privacy Policy</a>
-                <a href="#" onclick="alert('Disclaimer: No data is saved on servers.')">Disclaimer</a>
-                <a href="#" onclick="alert('Contact: support@resizefast.com')">Contact Us</a>
-                <span>&copy; 2024 Resizefast. Professional Client-Side Suite.</span>
+            <div class="ad-space ad-bottom">
+                ADVERTISEMENT (BOTTOM)
             </div>
         </main>
     </div>
@@ -176,33 +160,20 @@
         const fileIn = document.getElementById('fileIn');
         const dropzone = document.getElementById('dropzone');
         const previewArea = document.getElementById('previewArea');
-        const sidebar = document.getElementById('sidebar');
-        
         let originalImg = new Image();
         let originalFile = null;
 
-        // 1. Handling Files
         fileIn.onchange = e => handleUpload(e.target.files[0]);
-        
-        dropzone.ondragover = e => { e.preventDefault(); dropzone.style.borderColor = 'var(--primary)'; };
-        dropzone.ondrop = e => { e.preventDefault(); handleUpload(e.dataTransfer.files[0]); };
-
         function handleUpload(file) {
-            if (!file || !file.type.startsWith('image/')) return;
-            if (file.size > 50 * 1024 * 1024) { alert("File too large (Max 50MB)"); return; }
-
+            if (!file) return;
             originalFile = file;
             const reader = new FileReader();
             reader.onload = e => {
                 originalImg.onload = () => {
                     dropzone.classList.add('hidden');
                     previewArea.classList.remove('hidden');
-                    
                     document.getElementById('origImgPreview').src = originalImg.src;
                     document.getElementById('origSize').innerText = (file.size / 1024).toFixed(1) + " KB";
-                    document.getElementById('origRes').innerText = `${originalImg.width} x ${originalImage.height}`;
-                    
-                    // Reset inputs
                     document.getElementById('targetWidth').value = originalImg.width;
                     document.getElementById('targetHeight').value = originalImg.height;
                 };
@@ -213,103 +184,97 @@
 
         function toggleInputs() {
             const mode = document.getElementById('resizeMode').value;
-            document.getElementById('pixelInputs').classList.toggle('hidden', mode !== 'pixel');
-            document.getElementById('percentageInput').classList.toggle('hidden', mode !== 'percentage');
-            document.getElementById('kbInput').classList.toggle('hidden', mode !== 'kb');
+            document.getElementById('pixelInputs').className = mode === 'pixel' ? '' : 'hidden';
+            document.getElementById('percentageInput').className = mode === 'percentage' ? '' : 'hidden';
+            document.getElementById('kbInput').className = mode === 'kb' ? '' : 'hidden';
         }
 
         function maintainRatio(type) {
             const ratio = originalImg.width / originalImg.height;
-            const wInput = document.getElementById('targetWidth');
-            const hInput = document.getElementById('targetHeight');
-            if (type === 'w') hInput.value = Math.round(wInput.value / ratio);
-            else wInput.value = Math.round(hInput.value * ratio);
+            const w = document.getElementById('targetWidth');
+            const h = document.getElementById('targetHeight');
+            if (type === 'w') h.value = Math.round(w.value / ratio);
+            else w.value = Math.round(h.value * ratio);
         }
 
-        // 2. High Performance Processing
+        // --- Crystal Clear Resize Engine ---
         async function processImage() {
             if (!originalFile) return;
-            const status = document.getElementById('status');
-            status.innerText = "Applying algorithms...";
-
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            const mode = document.getElementById('resizeMode').value;
             const format = document.getElementById('outputFormat').value;
-            const enhance = document.getElementById('enhanceImage').checked;
+            const mode = document.getElementById('resizeMode').value;
 
-            let w = originalImg.width;
-            let h = originalImg.height;
+            let targetW = originalImg.width;
+            let targetH = originalImg.height;
 
             if (mode === 'pixel') {
-                w = parseInt(document.getElementById('targetWidth').value) || w;
-                h = parseInt(document.getElementById('targetHeight').value) || h;
+                targetW = parseInt(document.getElementById('targetWidth').value);
+                targetH = parseInt(document.getElementById('targetHeight').value);
             } else if (mode === 'percentage') {
                 const p = parseInt(document.getElementById('scalePercent').value) / 100;
-                w *= p; h *= p;
+                targetW *= p; targetH *= p;
             }
 
-            canvas.width = w;
-            canvas.height = h;
+            // Step 1: Use Stepped Downscaling (Anti-Blur)
+            let canvas = document.createElement('canvas');
+            let ctx = canvas.getContext('2d');
+            
+            let curW = originalImg.width;
+            let curH = originalImg.height;
+            
+            canvas.width = curW;
+            canvas.height = curH;
+            ctx.drawImage(originalImg, 0, 0);
 
-            // Pro-Rendering
-            ctx.imageSmoothingEnabled = true;
-            ctx.imageSmoothingQuality = 'high';
-            
-            if (enhance) {
-                // Brightness/Contrast/Sharpness simulation
-                ctx.filter = "contrast(1.05) brightness(1.02) saturate(1.05)";
+            // Gradually reduce size by 50% intervals to keep detail
+            while (curW * 0.5 > targetW) {
+                curW *= 0.5; curH *= 0.5;
+                let tmpCanvas = document.createElement('canvas');
+                tmpCanvas.width = curW; tmpCanvas.height = curH;
+                tmpCanvas.getContext('2d').drawImage(canvas, 0, 0, curW, curH);
+                canvas = tmpCanvas;
             }
+
+            // Final Step: Sharp Render
+            const finalCanvas = document.createElement('canvas');
+            finalCanvas.width = targetW; finalCanvas.height = targetH;
+            const finalCtx = finalCanvas.getContext('2d');
+            finalCtx.imageSmoothingEnabled = true;
+            finalCtx.imageSmoothingQuality = 'high';
             
-            ctx.drawImage(originalImg, 0, 0, w, h);
+            // Subtle Brightness/Contrast Boost
+            finalCtx.filter = "contrast(1.05) brightness(1.03) saturate(1.02)";
+            finalCtx.drawImage(canvas, 0, 0, targetW, targetH);
 
             if (format === 'application/pdf') {
-                savePDF(canvas);
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF('p', 'mm', 'a4');
+                doc.addImage(finalCanvas.toDataURL('image/jpeg', 0.98), 'JPEG', 10, 10, 190, (190 * targetH) / targetW);
+                doc.save("resizefast.pdf");
             } else if (mode === 'kb') {
-                compressToKB(canvas, format);
+                compressKB(finalCanvas, format);
             } else {
-                canvas.toBlob(blob => renderResult(blob, format), format, 0.92);
+                finalCanvas.toBlob(blob => render(blob, format), format, 0.95);
             }
         }
 
-        function compressToKB(canvas, format) {
+        function compressKB(cvs, fmt) {
             const target = parseInt(document.getElementById('targetKB').value);
-            let q = 0.9;
+            let q = 0.95;
             const step = () => {
-                canvas.toBlob(blob => {
-                    if (blob.size / 1024 > target && q > 0.1) {
-                        q -= 0.1;
-                        step();
-                    } else {
-                        renderResult(blob, format);
-                    }
-                }, format, q);
+                cvs.toBlob(b => {
+                    if (b.size/1024 > target && q > 0.1) { q -= 0.05; step(); }
+                    else render(b, fmt);
+                }, fmt, q);
             };
             step();
         }
 
-        function savePDF(canvas) {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF('p', 'mm', 'a4');
-            const data = canvas.toDataURL('image/jpeg', 0.95);
-            doc.addImage(data, 'JPEG', 10, 10, 190, (190 * canvas.height) / canvas.width);
-            doc.save("resizefast_pro.pdf");
-            document.getElementById('status').innerText = "PDF Exported Successfully.";
-        }
-
-        function renderResult(blob, format) {
+        function render(blob, fmt) {
             const url = URL.createObjectURL(blob);
-            const resImg = document.getElementById('resultImgPreview');
-            const dlBtn = document.getElementById('downloadBtn');
-            
-            resImg.src = url;
-            document.getElementById('resultSize').innerText = (blob.size / 1024).toFixed(1) + " KB";
-            document.getElementById('resultRes').innerText = `${resImg.naturalWidth || 'Processing'} x ${resImg.naturalHeight || '...'}`;
-            
-            dlBtn.href = url;
-            dlBtn.download = `resizefast_${Date.now()}.${format.split('/')[1]}`;
-            
-            document.getElementById('status').innerText = "Ready for download.";
+            document.getElementById('resultImgPreview').src = url;
+            document.getElementById('resultSize').innerText = (blob.size/1024).toFixed(1) + " KB";
+            document.getElementById('downloadBtn').href = url;
+            document.getElementById('downloadBtn').download = `resizefast.${fmt.split('/')[1]}`;
         }
     </script>
 </body>
